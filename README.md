@@ -150,7 +150,7 @@ Then try the rest of the Clerk:
   ```
 
   Use the "report to the bank by" date from your alarm.
-- **A public post.** In the group: `@clerk the bank hasn't replied, draft a post for X`. The Clerk shows a draft, and you reply `@clerk post it`. Switch then shows an approval card in the group, and the post runs only when you approve it. Without X keys it stops at "NOT POSTED"; see the extras below.
+- **A public post.** In the group: `@clerk the bank hasn't replied, draft a post for X`. The Clerk shows a draft, and you reply `@clerk post it`. Switch then shows an approval card in the group, and the post runs only when you approve it. The card shows the exact text. Answer **Allow once**: **Allow for this session** lets the Clerk post again without asking until its session ends. Without X keys it stops at "NOT POSTED"; see the extras below.
 
 Add `--dry-run` to see an alarm without posting it. The same SMS counts as a duplicate for an hour; delete `bankwatch-state.json` to fire it again.
 
