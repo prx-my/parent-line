@@ -1,5 +1,9 @@
 {
   "permissions": {
+    "allow": [
+      "mcp__switch",
+      "Bash(python3 xpost.py check:*)"
+    ],
     "ask": [
       "Bash(python3 xpost.py post:*)"
     ]

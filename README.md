@@ -102,7 +102,7 @@ About 20 minutes. You need no phone and no bank: one Telegram group and a simula
 1. Make a Telegram group (this is the family group), add your bot, and send `hi`. The room appears in Switch Console. Copy its room id.
 2. In Switch Console, create two agents:
    - `guardian`: Claude Code, any working directory. Under **Who can talk to your agent**, choose **Anyone**, so the family and Bank watch can address it.
-   - `clerk`: Claude Code, working directory `clerk/` inside this repo, **Who can talk to your agent** set to **Anyone**. Its settings there make every public post wait for a family member's approval.
+   - `clerk`: Claude Code, working directory `clerk/` inside this repo, **Who can talk to your agent** set to **Anyone**, and **Auto mode turned off**. In auto mode, Claude Code's own safety review can let the post command run without asking. With it off, the settings in `clerk/.claude/settings.json` let the Clerk use its Switch tools and check drafts freely, but every public post waits for a family member to approve it.
    - `bank-watch`: working directory `bank-watch/` inside this repo (`mkdir -p bank-watch` first). Switch Console writes its credentials there, git-ignored. It never runs an AI session.
 3. In the Telegram group, send:
 
@@ -164,6 +164,7 @@ Add `--dry-run` to see an alarm without posting it. The same SMS counts as a dup
 | `✗ @guardian isn't in the room` | Send `!invite-agent @guardian` in the group, then run `setup` again |
 | The alarm arrives but the Guardian stays silent | Set the Guardian's **Who can talk to your agent** to **Anyone**, and check that Claude Code is set up in Switch Console |
 | A family reply gets no answer | Start it with `@guardian`. See "Follow the conversation" below |
+| The Clerk publishes, or says NOT POSTED, without an approval card appearing | Turn **Auto mode** off for the `clerk` agent in Switch Console |
 | The Clerk posts nothing when you approve a public post | Check the Clerk's working directory is `clerk/` in this repo, so its approval settings and `xpost.py` are found |
 | `simulate` says `No alarm` the second time | It's a duplicate within the hour. Delete `bankwatch-state.json` |
 
