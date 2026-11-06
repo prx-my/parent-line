@@ -189,7 +189,7 @@ Add `--dry-run` to see an alarm without posting it. The same SMS counts as a dup
 
 ### 5. Watch a ride
 
-1. In Switch Console, create a fourth agent, `ride-watch`, with working directory `ride-watch/` inside this repo (`mkdir -p ride-watch` first). Like Bank watch, it never runs an AI session.
+1. In Switch Console, create a fourth agent, `ride-watch`, with working directory `ride-watch/` inside this repo (`mkdir -p ride-watch` first). Then, on its page under **Room watcher**, press **Stop**. Otherwise Console starts a Claude Code session whenever someone writes `@ride-watch`, and that session can answer as if it were Ride watch.
 2. In the Telegram group, send `!invite-agent @ride-watch`.
 3. Check `[ride]` in `family.toml` (copy it from `family.example.toml` if your file is older). To demo without waiting, set `grace_minutes = 0` and `answer_minutes = 1`.
 4. Run it and leave it running:
@@ -214,6 +214,7 @@ The time can be `25 min`, `1 hr`, `23:40` or `11:40 pm`. Put it before the paste
 | A family reply gets no answer | Start it with `@guardian`. See "Follow the conversation" below |
 | The Clerk publishes, or says NOT POSTED, without an approval card appearing | Turn **Auto mode** off for the `clerk` agent in Switch Console |
 | The Clerk posts nothing when you approve a public post | Check the Clerk's working directory is `clerk/` in this repo, so its approval settings and `xpost.py` are found |
+| `ride-watch` posts "Starting a session to handle this", or a ride alarm before its check-in | Console is running an AI session as ride-watch. Press **Stop** under **Room watcher** on ride-watch's page in Console, end that session, and keep `python3 -m ridewatch serve` running |
 | Ride watch never answers 👀 | Check it is running and was invited (`!invite-agent @ride-watch`). If its log says `Ignoring a message from room …`, set `room_id` in `family.toml` to that room |
 | `simulate` says `No alarm` the second time | It's a duplicate within the hour. Delete `bankwatch-state.json` |
 | Every agent message in Telegram ends with a list of the tools it called | That's the Telegram connection's tool-call display. An open pull request ([sandbox-quantum/switch#1585](https://github.com/sandbox-quantum/switch/pull/1585)) adds a **Show tool calls** box to **Connect** → **Telegram**; untick it when you connect. An existing connection can't be changed from Switch Console or the web dashboard. Leave it on there: disconnecting removes the family room with its instructions and the Clerk's case files, and you would have to set everything up again |
