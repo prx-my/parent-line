@@ -52,6 +52,14 @@ The parent writes on WhatsApp what they are being told. Line:
 
 It doesn't argue or lecture. It never tells the parent to keep anything from the caller, because that could put them at risk if the caller is watching.
 
+### 3. A ride that didn't end (Ride watch)
+
+The same isolation shows up on a night ride: someone alone in an Ola, Uber, Rapido or auto, and nobody knows if they got home. Ride watch is a check-in timer in the family group. The rider starts it (`@ride-watch 25 min` plus the app's share-trip message), so nobody is tracked by default. Past the expected arrival plus 10 minutes it asks once; with no answer 5 minutes later it posts the alarm and @-mentions the Guardian. A code word raises it at once.
+
+Like Bank watch, it is plain code: reading the time, the timer and the alarm are tested rules, because AI agents can't keep time. The Guardian's jobs are a normal call, checking the trip link, and 112. Afterwards the Clerk drafts the complaint to the ride app, filed by the rider themself, and the public post if the app doesn't answer.
+
+It knows only that the rider hasn't confirmed, not where they are. Ride apps have no API for a trip, and Switch's Telegram bridge doesn't pass on live location. A location check (is the vehicle getting closer?) needs one of those, and is out of scope for now.
+
 ## The help line
 
 Line is the parent's everyday helper on WhatsApp or SMS, in Hindi, English or Hinglish. Its instructions are [guardian/line-instructions.md](../guardian/line-instructions.md).

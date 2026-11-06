@@ -3,3 +3,4 @@ bankwatch-state.json
 *.tmp
 .switch/
 __pycache__/
+ridewatch-state.json

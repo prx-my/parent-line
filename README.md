@@ -12,7 +12,8 @@ It runs on [Switch](https://github.com/sandbox-quantum/switch), which makes the 
 2. **The alarm lands in the family group**, addressed to the Guardian agent. The parent never has to spot the scam themselves.
 3. **The family and the Guardian respond together.** Someone calls the parent on a normal call, which breaks the video call's hold. Someone reports on 1930 or cybercrime.gov.in. Someone calls the bank. The Guardian tracks who has which job, chases the jobs nobody took, and closes the alarm when the parent is safe.
 4. **The Clerk handles the paperwork.** The Guardian hands it the case. It keeps a case file as a Switch room document, writes the 1930 complaint and the letter to the bank, and tracks RBI's reporting deadline: 3 working days for an unauthorised debit, with a reminder on the last day. When a bank, ride app or railway doesn't answer, it drafts a public post on X tagging the company. The post goes out only after a family member approves it on Switch's approval card, and never carries names, phone numbers or account numbers.
-5. **Optional: Line, the parent's help line.** An agent in the parent's WhatsApp or SMS chat helps with phone questions one step at a time, in Hindi, English or Hinglish. When a request is really a scam ("install AnyDesk", "tell me the OTP"), it refuses and raises the alarm in the family group. This part needs Switch's WhatsApp or SMS adapter, both still open pull requests; everything above runs on official Switch.
+5. **Ride watch: a check-in for a ride alone at night.** Before an Ola, Uber, Rapido or auto ride, anyone in the group writes `@ride-watch 25 min` and pastes the app's share-trip message. If they haven't said `reached` 10 minutes after that time, Ride watch asks. With no answer in 5 more minutes, it raises the alarm for the Guardian with the vehicle and trip link they shared, and the family gets three jobs: call them, check the trip link, call 112. A code word (`@ride-watch pizza`) raises it at once, for when they can't talk freely. It runs only when someone starts it. Nobody is tracked otherwise.
+6. **Optional: Line, the parent's help line.** An agent in the parent's WhatsApp or SMS chat helps with phone questions one step at a time, in Hindi, English or Hinglish. When a request is really a scam ("install AnyDesk", "tell me the OTP"), it refuses and raises the alarm in the family group. This part needs Switch's WhatsApp or SMS adapter, both still open pull requests; everything above runs on official Switch.
 
 The full design is in [docs/design.md](docs/design.md).
 
@@ -96,6 +97,7 @@ Switch connects every part. Without it, nothing reaches anyone.
 | **Guardian** | An AI agent (Claude Code, started by Switch Console) | Connected to the family room as its assigned agent. Its behaviour is the room's instructions: [guardian/family-room-instructions.md](guardian/family-room-instructions.md). |
 | **Clerk** | An AI agent (Claude Code), working in [clerk/](clerk/) | In the family room beside the Guardian. The Guardian hands it the case (`@clerk please open a case`), an agent-to-agent handoff through Switch. It keeps the case file as a Switch room document (`create_room_document`). Its public posts run `clerk/xpost.py`, which [clerk/.claude/settings.json](clerk/.claude/settings.json) makes wait for approval, so Switch puts an approval card in the family's chat. |
 | **Bank watch** | A small Python service: [bankwatch/](bankwatch/) | A Switch agent identity with no AI session. When a rule fires, it posts the alarm into the family room through Switch's agent API (`POST /agents/{id}/message`) and @-mentions the Guardian, and Switch delivers that mention. It also reminds the Clerk on the last day to report a debit to the bank. `setup` uses its agent key to set the room's instructions (`update_room`). |
+| **Ride watch** | A small Python service: [ridewatch/](ridewatch/) | Another Switch agent identity with no AI session. It reads the messages addressed to it through Switch's agent event stream (`GET /agents/{id}/events`, a long poll), keeps the clock that the AI agents can't, and posts the check-in and the alarm through the same API as Bank watch. The alarm @-mentions the Guardian. |
 | **Line** (optional) | The parent's help line: an AI agent in their WhatsApp or SMS chat | Switch's WhatsApp or SMS bridge makes the chat a room. Line helps the parent there, then hops to the family room (`connect_to_room`) to post a help case or raise an alarm. Its behaviour is the room's instructions: [guardian/line-instructions.md](guardian/line-instructions.md). Those adapters are open pull requests to Switch; see Optional extras below. |
 
 ## What's in this repo
@@ -103,11 +105,12 @@ Switch connects every part. Without it, nothing reaches anyone.
 | Path | What it is |
 |---|---|
 | [bankwatch/](bankwatch/) | Bank watch: SMS parser (`parse.py`), rules and alarm text (`rules.py`), the Switch client (`switch.py`), room setup (`setup.py`), and the `simulate`, `serve`, `setup` and `remind` commands (`__main__.py`). Python standard library only |
+| [ridewatch/](ridewatch/) | Ride watch: reading the arrival time, the check-in and the alarm (`rides.py`), and the `serve` loop (`__main__.py`). It reuses Bank watch's config and Switch client |
 | [guardian/family-room-instructions.md](guardian/family-room-instructions.md) | The family room's instructions: the Guardian's and the Clerk's parts, their message layouts, and the family details `setup` fills in |
 | [clerk/](clerk/) | The Clerk's working directory: `xpost.py` checks and posts X drafts, and `.claude/settings.json` makes every post wait for approval |
 | [guardian/line-instructions.md](guardian/line-instructions.md) | Line's instructions, for the optional WhatsApp or SMS help line |
 | [family.example.toml](family.example.toml) | The template for `family.toml`: room, family details, alarm thresholds, optional X keys |
-| [tests/](tests/) | Tests for Bank watch and `xpost.py` |
+| [tests/](tests/) | Tests for Bank watch, Ride watch and `xpost.py` |
 | [docs/design.md](docs/design.md) | The design: why the bank's check isn't enough, the response, use cases, what's out of scope |
 
 ## Run it
@@ -184,6 +187,21 @@ Then try the rest of the Clerk:
 
 Add `--dry-run` to see an alarm without posting it. The same SMS counts as a duplicate for an hour; delete `bankwatch-state.json` to fire it again. Don't change the Refno to get round it: the agents then treat it as a second debit, and the Clerk asks whether there were one or two.
 
+### 5. Watch a ride
+
+1. In Switch Console, create a fourth agent, `ride-watch`, with working directory `ride-watch/` inside this repo (`mkdir -p ride-watch` first). Like Bank watch, it never runs an AI session.
+2. In the Telegram group, send `!invite-agent @ride-watch`.
+3. Check `[ride]` in `family.toml` (copy it from `family.example.toml` if your file is older). To demo without waiting, set `grace_minutes = 0` and `answer_minutes = 1`.
+4. Run it and leave it running:
+
+   ```bash
+   python3 -m ridewatch serve
+   ```
+
+5. In the group, as the rider: `@ride-watch 1 min` followed by a pasted share-trip message, or a line like `Uber, white Dzire KA 20 AB 1234, to home`. Ride watch answers 👀 with the time it will check. Don't reply. A minute later it asks if you reached, and a minute after that it posts the 🚨 Ride alarm and the Guardian hands out the jobs. Send `@ride-watch reached` to close it.
+
+The time can be `25 min`, `1 hr`, `23:40` or `11:40 pm`. Put it before the pasted message, because a share-trip message can carry its own times ("driver 3 mins away"). `@ride-watch pizza` (the `code_word`) raises the alarm at once. A family member can close someone's ride by name: `@ride-watch Riya reached`.
+
 ### If you get stuck
 
 | What you see | Fix |
@@ -196,6 +214,7 @@ Add `--dry-run` to see an alarm without posting it. The same SMS counts as a dup
 | A family reply gets no answer | Start it with `@guardian`. See "Follow the conversation" below |
 | The Clerk publishes, or says NOT POSTED, without an approval card appearing | Turn **Auto mode** off for the `clerk` agent in Switch Console |
 | The Clerk posts nothing when you approve a public post | Check the Clerk's working directory is `clerk/` in this repo, so its approval settings and `xpost.py` are found |
+| Ride watch never answers 👀 | Check it is running and was invited (`!invite-agent @ride-watch`). If its log says `Ignoring a message from room …`, set `room_id` in `family.toml` to that room |
 | `simulate` says `No alarm` the second time | It's a duplicate within the hour. Delete `bankwatch-state.json` |
 | Every agent message in Telegram ends with a list of the tools it called | That's the Telegram connection's tool-call display. An open pull request ([sandbox-quantum/switch#1585](https://github.com/sandbox-quantum/switch/pull/1585)) adds a **Show tool calls** box to **Connect** → **Telegram**; untick it when you connect. An existing connection can't be changed from Switch Console or the web dashboard. Leave it on there: disconnecting removes the family room with its instructions and the Clerk's case files, and you would have to set everything up again |
 
@@ -223,3 +242,6 @@ python3 -m unittest discover -s tests
 - The "report to the bank by" date counts every day but Sunday as a working day. Bank holidays only make the real deadline later, so the date shown is never too late, but it can be a day or two early.
 - `xpost.py` catches phone numbers, emails and long account-style numbers by pattern, not names or addresses. That is why a family member reads and approves every post.
 - Parent Line can't stop a transfer. Only the bank can, which is why "call the bank" is one of the three jobs.
+- Ride watch knows only that the rider hasn't said they reached, not where they are. Ola, Uber and Rapido offer no API for a trip, so the location is the share-trip link a person opens, and Switch's Telegram bridge doesn't pass on Telegram's live location.
+- Ride watch only watches rides someone starts. It doesn't replace 112 or the ride app's SOS button; it makes sure the family notices and acts.
+- The ride alarm appears in the family group, which is on the rider's phone too. Someone reading their screen after the code word will see it.

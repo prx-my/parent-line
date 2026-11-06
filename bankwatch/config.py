@@ -98,8 +98,8 @@ def switch_agent(config: Config) -> SwitchAgent:
     if not all(env.values()) and config.credentials:
         if not config.credentials.exists():
             raise ConfigError(
-                f"credentials file {config.credentials} does not exist. Create the bank-watch agent in Switch Console"
-                " with this repo's bank-watch/ folder as its working directory"
+                f"credentials file {config.credentials} does not exist. Create the {config.credentials.stem} agent in Switch Console"
+                f" with this repo's {config.credentials.stem}/ folder as its working directory"
             )
         on_disk = json.loads(config.credentials.read_text())["env"]
         env = {k: env[k] or str(on_disk.get(k, "")) for k in keys}

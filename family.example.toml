@@ -26,6 +26,16 @@ members = ["Riya", "Arjun"]          # names as the Telegram group shows them
 backup_contact = "Mr Sharma, next-door neighbour, +91 91234 56789"
 banks = ["SBI"]
 
+# Ride watch: anyone in the group writes "@ride-watch 25 min" before a ride alone at night.
+# Past that time it asks if they reached; with no answer it raises the alarm for the Guardian.
+[ride]
+name = "@ride-watch"         # how people address it in the group
+credentials = "ride-watch/.switch/agents/ride-watch.json"
+state_file = "ridewatch-state.json"
+grace_minutes = 10           # after the expected arrival, before asking "have you reached?"
+answer_minutes = 5           # after asking, before the alarm
+code_word = "pizza"          # "@ride-watch pizza" raises the alarm at once; "" for none
+
 # Optional: X keys for the Clerk's public posts (an X developer app with Read and Write, OAuth 1.0a).
 # Without them the Clerk's posts stop at "NOT POSTED". About $0.01 a post on X's pay-per-use API.
 # [x]
