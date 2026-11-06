@@ -3,6 +3,9 @@
 parent_name = "Mom"
 # How the Guardian is addressed in the family group: its alias there, or its registered name.
 guardian = "@guardian"
+# The Clerk: keeps the case file and gets the reminder before the bank's reporting deadline.
+# Leave it out and reminders go to the Guardian.
+clerk = "@clerk"
 # The family group's Switch room id (Switch Console → the room → copy id).
 room_id = ""
 # Shared secret the SMS-forwarder app sends as ?key=… or the X-Bankwatch-Key header.
@@ -15,6 +18,21 @@ state_file = "bankwatch-state.json"
 
 # Payees the parent pays regularly. Big debits to them still alarm; they just aren't "new".
 known_payees = ["SHARMA KIRANA STORE", "CITY ELECTRICITY BOARD"]
+
+# What the Guardian knows about the family. `python3 -m bankwatch setup` writes it into the room's instructions.
+[family]
+parent_phone = "+91 98765 43210"
+members = ["Riya", "Arjun"]          # names as the Telegram group shows them
+backup_contact = "Mr Sharma, next-door neighbour, +91 91234 56789"
+banks = ["SBI"]
+
+# Optional: X keys for the Clerk's public posts (an X developer app with Read and Write, OAuth 1.0a).
+# Without them the Clerk's posts stop at "NOT POSTED". About $0.01 a post on X's pay-per-use API.
+# [x]
+# api_key = ""
+# api_secret = ""
+# access_token = ""
+# access_secret = ""
 
 [rules]
 large_debit = 50000       # ₹: any single debit at or above this

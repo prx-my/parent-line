@@ -19,15 +19,27 @@ class ConfigError(Exception):
 
 
 @dataclass(frozen=True)
+class Family:
+    """What the Guardian needs to know about the family, from [family] in family.toml."""
+
+    parent_phone: str
+    members: list[str]
+    backup_contact: str
+    banks: list[str]
+
+
+@dataclass(frozen=True)
 class Config:
     parent_name: str
     guardian: str
+    clerk: str
     room_id: str
     webhook_secret: str
     state_file: Path
     known_payees: list[str]
     rules: Rules
     credentials: Path | None
+    family: Family | None
 
 
 def _need(table: dict, key: str, where: str) -> object:
@@ -53,15 +65,28 @@ def load(path: Path) -> Config:
     )
     base = path.parent
     credentials = raw.get("credentials")
+    f = raw.get("family")
+    family = None
+    if isinstance(f, dict):
+        where = f"{path} [family]"
+        family = Family(
+            parent_phone=str(_need(f, "parent_phone", where)),
+            members=[str(m) for m in _need(f, "members", where)],  # type: ignore[attr-defined]
+            backup_contact=str(_need(f, "backup_contact", where)),
+            banks=[str(b) for b in _need(f, "banks", where)],  # type: ignore[attr-defined]
+        )
     return Config(
         parent_name=str(_need(raw, "parent_name", str(path))),
         guardian=str(_need(raw, "guardian", str(path))),
+        # Without a Clerk, deadline reminders go to the Guardian.
+        clerk=str(raw.get("clerk") or _need(raw, "guardian", str(path))),
         room_id=str(raw.get("room_id", "")),
         webhook_secret=os.environ.get("BANKWATCH_SECRET") or str(raw.get("webhook_secret", "")),
         state_file=base / str(raw.get("state_file", "bankwatch-state.json")),
         known_payees=[str(p) for p in raw.get("known_payees", [])],
         rules=rules,
         credentials=(base / str(credentials)) if credentials else None,
+        family=family,
     )
 
 
@@ -72,7 +97,10 @@ def switch_agent(config: Config) -> SwitchAgent:
     env = {k: os.environ.get(k, "") for k in keys}
     if not all(env.values()) and config.credentials:
         if not config.credentials.exists():
-            raise ConfigError(f"credentials file {config.credentials} does not exist")
+            raise ConfigError(
+                f"credentials file {config.credentials} does not exist. Create the bank-watch agent in Switch Console"
+                " with this repo's bank-watch/ folder as its working directory"
+            )
         on_disk = json.loads(config.credentials.read_text())["env"]
         env = {k: env[k] or str(on_disk.get(k, "")) for k in keys}
     missing = [k for k in keys if not env[k]]

@@ -3,6 +3,8 @@ Switch room when a rule fires.
 
     python -m bankwatch simulate "Rs 4,80,000 debited ..." [--at 23:40] [--dry-run]
     python -m bankwatch serve [--port 8787]
+    python -m bankwatch setup [--dry-run]
+    python -m bankwatch remind [--at "2026-11-10 09:00"] [--dry-run]
 """
 
 from __future__ import annotations
@@ -12,6 +14,8 @@ import hmac
 import json
 import logging
 import sys
+import threading
+import time
 from datetime import datetime
 from http.server import BaseHTTPRequestHandler, HTTPServer
 from pathlib import Path
@@ -19,7 +23,8 @@ from urllib.parse import parse_qs, urlsplit
 
 from bankwatch.config import Config, ConfigError, load, switch_agent
 from bankwatch.parse import parse
-from bankwatch.rules import State, alarm_text, reasons
+from bankwatch.rules import State, alarm_text, reasons, reminder_text
+from bankwatch.setup import run as run_setup
 from bankwatch.switch import SwitchAgent, SwitchPostError
 
 logger = logging.getLogger("bankwatch")
@@ -46,6 +51,21 @@ def handle(config: Config, agent: SwitchAgent | None, text: str, at: datetime) -
     return alarm
 
 
+def remind(config: Config, agent: SwitchAgent | None, now: datetime) -> list[str]:
+    """Post a reminder for each open case in its last day to report. Returns them.
+
+    With no agent (a dry run) the reminders are returned but not posted, and not marked as sent.
+    """
+    state = State.load(config.state_file, config.known_payees)
+    texts = [reminder_text(clerk=config.clerk, parent=config.parent_name, case=c) for c in state.due_reminders(now)]
+    if agent is None:
+        return texts
+    for text in texts:
+        agent.post(config.room_id, text)
+    state.save(config.state_file)
+    return texts
+
+
 def _sms_text(body: bytes, content_type: str) -> str:
     """Forwarder apps send either JSON or the bare SMS text."""
     raw = body.decode("utf-8", errors="replace").strip()
@@ -59,6 +79,7 @@ def _sms_text(body: bytes, content_type: str) -> str:
 
 
 def serve(config: Config, agent: SwitchAgent, port: int) -> None:
+    lock = threading.Lock()  # the SMS handler and the reminder thread share the state file
     if not config.webhook_secret:
         raise ConfigError("'webhook_secret' (or BANKWATCH_SECRET) is required to serve: without it anyone could post fake alarms")
 
@@ -73,7 +94,8 @@ def serve(config: Config, agent: SwitchAgent, port: int) -> None:
             try:
                 length = int(self.headers.get("Content-Length") or 0)
                 text = _sms_text(self.rfile.read(length), self.headers.get("Content-Type", ""))
-                alarm = handle(config, agent, text, datetime.now())
+                with lock:
+                    alarm = handle(config, agent, text, datetime.now())
             except (ValueError, json.JSONDecodeError) as exc:
                 return self._reply(400, str(exc))
             except SwitchPostError as exc:
@@ -93,6 +115,18 @@ def serve(config: Config, agent: SwitchAgent, port: int) -> None:
         def log_message(self, format: str, *args: object) -> None:  # noqa: A002
             logger.info("%s %s", self.address_string(), (format % args).replace(config.webhook_secret, "***"))
 
+    def remind_every_15_minutes() -> None:
+        while True:
+            try:
+                with lock:
+                    for text in remind(config, agent, datetime.now()):
+                        logger.info("Reminder posted: %s", text.splitlines()[0])
+            except SwitchPostError as exc:
+                # The case stays unreminded on disk, so the next round retries.
+                logger.error("Reminder not posted: %s", exc)
+            time.sleep(15 * 60)
+
+    threading.Thread(target=remind_every_15_minutes, daemon=True).start()
     server = HTTPServer(("0.0.0.0", port), Handler)
     logger.info("Bank watch listening on :%d, POST bank SMS to /sms", port)
     server.serve_forever()
@@ -109,10 +143,22 @@ def main() -> int:
     sim.add_argument("--dry-run", action="store_true", help="print the alarm instead of posting it")
     srv = sub.add_parser("serve", help="receive bank SMS from a forwarder app")
     srv.add_argument("--port", type=int, default=8787)
+    st = sub.add_parser("setup", help="check the family room and set the Guardian's instructions")
+    st.add_argument("--dry-run", action="store_true", help="print the instructions instead of setting them")
+    rm = sub.add_parser("remind", help="post reminders for cases in their last day to report (serve does this every 15 minutes)")
+    rm.add_argument("--at", help='pretend it is this time, "YYYY-MM-DD HH:MM" (default: now)')
+    rm.add_argument("--dry-run", action="store_true", help="print the reminders instead of posting them")
     args = parser.parse_args()
 
     try:
         config = load(args.config)
+        if args.command == "setup":
+            return run_setup(config, None if args.dry_run else switch_agent(config), dry_run=args.dry_run)
+        if args.command == "remind":
+            now = datetime.strptime(args.at, "%Y-%m-%d %H:%M") if args.at else datetime.now()
+            texts = remind(config, None if args.dry_run else switch_agent(config), now)
+            print("\n\n".join(texts) if texts else "No case is in its last day to report.")
+            return 0
         if args.command == "serve":
             serve(config, switch_agent(config), args.port)
             return 0

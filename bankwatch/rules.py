@@ -8,7 +8,7 @@ from __future__ import annotations
 
 import json
 from dataclasses import dataclass, field
-from datetime import datetime, time, timedelta
+from datetime import date, datetime, time, timedelta
 from decimal import Decimal
 from pathlib import Path
 
@@ -47,6 +47,31 @@ def _norm(payee: str) -> str:
     return " ".join(payee.upper().split())
 
 
+def report_by(at: datetime) -> date:
+    """The last day to report an unauthorised debit to the bank and owe nothing.
+
+    RBI's 2017 customer-liability circular: zero liability when a third party's
+    fraud is reported within three working days of the bank's message.
+    """
+    # shortcut: counts every day but Sunday as a working day; bank holidays and 2nd/4th Saturdays only push the real deadline later, so this date is never too late. Use a bank-holiday calendar if families need the exact date.
+    day, counted = at.date(), 0
+    while counted < 3:
+        day += timedelta(days=1)
+        if day.weekday() != 6:
+            counted += 1
+    return day
+
+
+@dataclass
+class Case:
+    """A debit the family was alarmed about, open until its reporting deadline passes."""
+
+    opened: datetime
+    report_by: date
+    summary: str
+    reminded: bool = False
+
+
 def _at_night(rules: Rules, at: datetime) -> bool:
     now = at.time()
     if rules.night_start <= rules.night_end:
@@ -62,6 +87,7 @@ class State:
     known_payees: set[str] = field(default_factory=set)
     recent_debits: list[tuple[datetime, Decimal]] = field(default_factory=list)
     handled: dict[str, datetime] = field(default_factory=dict)
+    cases: list[Case] = field(default_factory=list)
 
     @classmethod
     def load(cls, path: Path, seed_payees: list[str]) -> State:
@@ -71,6 +97,10 @@ class State:
             state.known_payees |= set(raw["known_payees"])
             state.recent_debits = [(datetime.fromisoformat(t), Decimal(a)) for t, a in raw["recent_debits"]]
             state.handled = {k: datetime.fromisoformat(v) for k, v in raw["handled"].items()}
+            state.cases = [
+                Case(datetime.fromisoformat(c["opened"]), date.fromisoformat(c["report_by"]), c["summary"], c["reminded"])
+                for c in raw.get("cases", [])
+            ]
         return state
 
     def save(self, path: Path) -> None:
@@ -78,6 +108,10 @@ class State:
             "known_payees": sorted(self.known_payees),
             "recent_debits": [[t.isoformat(), str(a)] for t, a in self.recent_debits],
             "handled": {k: v.isoformat() for k, v in self.handled.items()},
+            "cases": [
+                {"opened": c.opened.isoformat(), "report_by": c.report_by.isoformat(), "summary": c.summary, "reminded": c.reminded}
+                for c in self.cases
+            ],
         }
         tmp = path.with_suffix(".tmp")
         tmp.write_text(json.dumps(raw, indent=2))
@@ -98,6 +132,33 @@ class State:
         # scammer's account stays "new" for every later transfer to it.
         if event.kind == "debit" and event.payee and not alarmed:
             self.known_payees.add(_norm(event.payee))
+        if event.kind == "debit" and alarmed:
+            what = _rupees(event.amount) if event.amount is not None else "Money"
+            to = f" to {event.payee}" if event.payee else ""
+            self.cases.append(Case(at, report_by(at), f"{what}{to} at {at:%H:%M} on {at:%a %-d %b}"))
+
+    def due_reminders(self, now: datetime) -> list[Case]:
+        """Cases whose deadline ends within the next 24 hours, each returned once.
+        Cases past their deadline are dropped."""
+        due = []
+        for case in self.cases:
+            end = datetime.combine(case.report_by, time.max)
+            if not case.reminded and end - timedelta(hours=24) <= now <= end:
+                case.reminded = True
+                due.append(case)
+        self.cases = [c for c in self.cases if now <= datetime.combine(c.report_by, time.max)]
+        return due
+
+
+def reminder_text(*, clerk: str, parent: str, case: Case) -> str:
+    return "\n".join([
+        f"⏰ **Report {parent}'s debit to the bank by {case.report_by:%a %-d %b}**",
+        case.summary,
+        f"If {parent} didn't make this payment, reporting it by then means {parent} shouldn't bear the loss (RBI rules).",
+        "If they were tricked into paying, report anyway: fast reports are how money gets frozen.",
+        "",
+        f"{clerk} has it been reported? Post the bank's complaint number.",
+    ])
 
 
 def reasons(rules: Rules, state: State, event: BankEvent, at: datetime) -> list[str]:
@@ -150,6 +211,11 @@ def alarm_text(*, guardian: str, parent: str, event: BankEvent, why: list[str], 
         # Italic marks would show literally around text that has its own underscores.
         "**Bank SMS**\n" + (event.text if "_" in event.text else f"_{event.text}_"),
         "",
+        *(
+            [f"**Report to the bank by {report_by(at):%a %-d %b}.** If {parent} didn't make this payment, reporting by then means {parent} shouldn't bear the loss (RBI rules).", ""]
+            if event.kind == "debit"
+            else []
+        ),
         f"{guardian} over to you.",
     ]
     return "\n".join(lines)

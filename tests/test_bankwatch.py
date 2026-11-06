@@ -133,12 +133,14 @@ class HandleTest(unittest.TestCase):
         self.config = Config(
             parent_name="Mom",
             guardian="@guardian",
+            clerk="@clerk",
             room_id="room-1",
             webhook_secret="s",
             state_file=Path(self.dir.name) / "state.json",
             known_payees=["SHARMA KIRANA STORE"],
             rules=RULES,
             credentials=None,
+            family=None,
         )
 
     def tearDown(self):
@@ -161,6 +163,8 @@ class HandleTest(unittest.TestCase):
             "\n"
             "**Bank SMS**\n"
             f"_{SBI_UPI}_\n"
+            "\n"
+            "**Report to the bank by Tue 10 Nov.** If Mom didn't make this payment, reporting by then means Mom shouldn't bear the loss (RBI rules).\n"
             "\n"
             "@guardian over to you.",
         )
@@ -187,6 +191,97 @@ class HandleTest(unittest.TestCase):
         self.assertEqual(_sms_text(b"plain sms", "text/plain"), "plain sms")
         with self.assertRaises(ValueError):
             _sms_text(b'{"from": "x"}', "application/json")
+
+
+
+class DeadlineTest(unittest.TestCase):
+    def test_three_working_days_skip_sunday(self):
+        from datetime import date
+
+        from bankwatch.rules import report_by
+
+        self.assertEqual(report_by(datetime(2026, 11, 6, 23, 40)), date(2026, 11, 10))  # Fri -> Sat, Mon, Tue
+        self.assertEqual(report_by(datetime(2026, 11, 9, 9, 0)), date(2026, 11, 12))  # Mon -> Tue, Wed, Thu
+
+    def test_alarmed_debit_opens_a_case_reminded_once_in_its_last_day(self):
+        from bankwatch.rules import reminder_text
+
+        state = State()
+        state.record(parse(SBI_UPI), datetime(2026, 11, 6, 23, 40), alarmed=True)
+        state.record(parse(FD), datetime(2026, 11, 6, 23, 45), alarmed=True)  # not a debit: no case
+        self.assertEqual(len(state.cases), 1)
+        self.assertEqual(state.due_reminders(datetime(2026, 11, 9, 12, 0)), [])  # too early
+        due = state.due_reminders(datetime(2026, 11, 10, 9, 0))
+        self.assertEqual(len(due), 1)
+        self.assertEqual(state.due_reminders(datetime(2026, 11, 10, 9, 15)), [])  # only once
+        self.assertIn("by Tue 10 Nov", reminder_text(clerk="@clerk", parent="Mom", case=due[0]))
+        state.due_reminders(datetime(2026, 11, 11, 0, 1))
+        self.assertEqual(state.cases, [])  # past its deadline
+
+    def test_cases_survive_a_restart(self):
+        with tempfile.TemporaryDirectory() as d:
+            path = Path(d) / "s.json"
+            state = State()
+            state.record(parse(SBI_UPI), datetime(2026, 11, 6, 23, 40), alarmed=True)
+            state.save(path)
+            self.assertEqual(State.load(path, []).cases, state.cases)
+
+
+class SetupTest(unittest.TestCase):
+    def setUp(self):
+        from bankwatch.config import Family
+
+        self.family = Family(parent_phone="+91 98765 43210", members=["Riya", "Arjun"], backup_contact="Mr Sharma", banks=["SBI"])
+        self.config = Config(
+            parent_name="Mom",
+            guardian="@guardian",
+            clerk="@clerk",
+            room_id="room-1",
+            webhook_secret="s",
+            state_file=Path("unused.json"),
+            known_payees=[],
+            rules=RULES,
+            credentials=None,
+            family=self.family,
+        )
+
+    def test_instructions_carry_the_family_and_drop_the_placeholders(self):
+        from bankwatch.setup import family_room_instructions
+
+        text = family_room_instructions(self.config)
+        self.assertTrue(text.startswith("This is a family's group."))
+        self.assertIn("- Family in this group: Riya, Arjun", text)
+        self.assertIn("- Parent's phone: +91 98765 43210", text)
+        self.assertNotIn("<name, e.g.", text)
+        self.assertNotIn("Paste everything below the line", text)
+
+    def test_missing_family_is_a_clear_error(self):
+        import dataclasses
+
+        from bankwatch.config import ConfigError
+        from bankwatch.setup import family_room_instructions
+
+        with self.assertRaises(ConfigError):
+            family_room_instructions(dataclasses.replace(self.config, family=None))
+
+    def test_sets_instructions_and_reports_a_missing_guardian(self):
+        from bankwatch.setup import run
+
+        class Ops:
+            def __init__(self, agents):
+                self.agents, self.calls = agents, []
+
+            def op(self, name, args):
+                self.calls.append((name, args))
+                return {"name": "Family", "agent_names": self.agents, "aliases": {}}
+
+        ok = Ops(["guardian", "clerk", "bank-watch"])
+        self.assertEqual(run(self.config, ok, dry_run=False), 0)
+        self.assertEqual([c[0] for c in ok.calls], ["get_room_detail", "update_room"])
+        self.assertIn("Riya, Arjun", ok.calls[1][1]["instructions"])
+
+        missing = Ops(["guardian", "bank-watch"])  # no clerk
+        self.assertEqual(run(self.config, missing, dry_run=False), 1)
 
 
 if __name__ == "__main__":

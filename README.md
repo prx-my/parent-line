@@ -1,14 +1,18 @@
 # Parent Line
 
-Digital-arrest scammers win by isolation: they keep an elderly victim on a video call for hours and forbid them to talk to anyone. Parent Line breaks that isolation by bringing the family in.
+Older parents can call, text and send voice notes, but settings, apps and "how do I…" questions leave them stuck, and their children aren't always free to help. Scammers use exactly that gap: "install AnyDesk", "tell me the OTP", "scan this to get your refund". And digital-arrest scammers win by isolation: they keep an elderly victim on a video call for hours and forbid them to talk to anyone.
+
+Parent Line is a help line for parents, staffed by AI agents and backed by the family. It helps the parent one step at a time on WhatsApp or SMS, refuses and raises the alarm when a request is really a scam, and brings the family in when a person is needed.
 
 It is built on [Switch](https://github.com/sandbox-quantum/switch), which connects the family's Telegram group, the AI agents and, optionally, the parent's WhatsApp.
 
 ## How it works
 
-1. **An alarm starts without the parent having to spot the scam.** Bank watch reads the parent's bank SMS and fires on scam patterns: a large debit, a new payee, an FD broken early, a loan, several debits close together, a debit late at night. Or the parent asks "is this real?" on WhatsApp.
-2. **The family group gets the alarm.** It lands in the family's Telegram group, addressed to the Guardian agent.
-3. **The family and the Guardian respond together.** Someone calls the parent on a normal call. Someone reports on 1930 or cybercrime.gov.in, with a complaint the Guardian drafts. Someone calls the bank. The Guardian tracks who has which job, chases anyone who hasn't answered, and closes the alarm when the parent is safe.
+1. **The parent asks Line for help, in Hindi, English or Hinglish.** Line, an agent in the parent's WhatsApp or SMS chat, walks them through it one step per message, reading photos of their screen. If they get stuck, Line posts a help case to the family with everything the caller needs to know: what they want, their phone, where they're stuck. If the request is on Line's danger list (a remote-control app, an OTP, a "police" video call), Line refuses, tells the parent it's a scam, and raises an alarm instead.
+2. **An alarm also starts without the parent having to spot the scam.** Bank watch reads the parent's bank SMS and fires on scam patterns: a large debit, a new payee, an FD broken early, a loan, several debits close together, a debit late at night.
+3. **The family group gets the alarm.** It lands in the family's Telegram group, addressed to the Guardian agent.
+4. **The family and the Guardian respond together.** Someone calls the parent on a normal call. Someone reports on 1930 or cybercrime.gov.in. Someone calls the bank. The Guardian tracks who has which job, chases anyone who hasn't answered, and closes the alarm when the parent is safe.
+5. **The Clerk handles the paperwork.** It keeps a case file as a Switch room document, writes the 1930 complaint and the letter to the bank, and tracks RBI's reporting deadline: 3 working days for an unauthorised debit, with a reminder on the last day. When a bank, ride app or railway doesn't answer, it drafts a public post on X tagging the company. The post goes out only after a family member approves it on Switch's approval card, and never carries names, phone numbers or account numbers.
 
 The bank already confirms big transfers, but it confirms them with the parent, who has been told what to say. Parent Line tells someone the scammer isn't controlling. The full design is in [docs/design.md](docs/design.md).
 
@@ -39,7 +43,7 @@ The Guardian answers within seconds:
 > 2. **Report** on 1930 or cybercrime.gov.in
 > 3. **Call SBI** on 1800 111 109 (from their SMS)
 >
-> Reply with the number of the job you're taking.
+> Reply @guardian with the number of the job you're taking.
 
 Then, as the family replies:
 
@@ -72,49 +76,103 @@ Switch connects every part. Without it, nothing reaches anyone.
 |---|---|---|
 | **Family group** | A Telegram group | Switch's Telegram bridge makes it a Switch room. Family messages reach the Guardian, and its replies appear in Telegram. |
 | **Guardian** | An AI agent (Claude Code, started by Switch Console) | Connected to the family room as its assigned agent. Its behaviour is the room's instructions: [guardian/family-room-instructions.md](guardian/family-room-instructions.md). |
-| **Bank watch** | A small Python service: [bankwatch/](bankwatch/) | A Switch agent identity with no AI session. When a rule fires, it posts the alarm into the family room through Switch's agent API (`POST /agents/{id}/message`) and @-mentions the Guardian, and Switch delivers that mention. |
-| **Line** (optional) | An AI agent in the parent's WhatsApp chat | Switch's WhatsApp bridge makes the chat a room. Line answers the parent there, then hops to the family room (`connect_to_room`) to raise the alarm. The WhatsApp bridge is in our fork of Switch and not yet merged; see step 4 below. |
+| **Clerk** | An AI agent (Claude Code), working in [clerk/](clerk/) | In the family room beside the Guardian. The Guardian hands it the case (`@clerk please open a case`), an agent-to-agent handoff through Switch. It keeps the case file as a Switch room document (`create_room_document`). Its public posts run `clerk/xpost.py`, which [clerk/.claude/settings.json](clerk/.claude/settings.json) makes wait for approval, so Switch puts an approval card in the family's chat. |
+| **Bank watch** | A small Python service: [bankwatch/](bankwatch/) | A Switch agent identity with no AI session. When a rule fires, it posts the alarm into the family room through Switch's agent API (`POST /agents/{id}/message`) and @-mentions the Guardian, and Switch delivers that mention. It also reminds the Clerk on the last day to report a debit to the bank. `setup` uses its agent key to set the room's instructions (`update_room`). |
+| **Line** (optional) | The parent's help line: an AI agent in their WhatsApp or SMS chat | Switch's WhatsApp or SMS bridge makes the chat a room. Line helps the parent there, then hops to the family room (`connect_to_room`) to post a help case or raise an alarm. Its behaviour is the room's instructions: [guardian/line-instructions.md](guardian/line-instructions.md). Those bridges are in our fork of Switch and not yet merged; see step 4 below. |
 
 ## Run it
 
-You need Python 3.11+ and Switch Console. Bank watch has no dependencies.
+About 20 minutes. You need no phone and no bank: one Telegram group and a simulated bank SMS show the whole alarm flow.
 
-### 1. Switch and Telegram
+**You need**
 
-1. Install Switch Console and add a server. See the [Switch docs](https://docs.switchagents.ai/).
-2. Turn on "follow the conversation" for the server: add `follow_the_conversation` to `FEATURE_FLAGS_ENABLED` in its `.env`, then restart it. Without it, family replies reach the Guardian only when they @-mention it.
-3. Create a Telegram bot with BotFather. **Turn Group Privacy off before adding it anywhere** (`/mybots` → your bot → **Bot Settings** → **Group Privacy** → **Turn off**).
-4. In Switch Console, open the server's **Home** → **Messaging apps** → **Connect** → **Telegram**, and paste the bot token and username.
-5. Make a Telegram group for the family, add the bot and send one message. The room appears in Switch Console.
+- Python 3.11 or newer (`python3 --version`). Bank watch has no other dependencies.
+- [Switch Console](https://docs.switchagents.ai/), with Claude Code set up as an agent provider (Switch docs: *Set up agent providers*).
+- A Telegram account.
 
-### 2. The Guardian
+### 1. A Switch server and a Telegram bot
 
-1. In Switch Console, create an agent named `guardian` (Claude Code). Under **Who can talk to your agent**, choose **Anyone**: the family and Bank watch must be able to address it.
-2. Add it to the family room. In the Telegram group: `!invite-agent @guardian`.
-3. Set the room's instructions to [guardian/family-room-instructions.md](guardian/family-room-instructions.md) (everything below the line), with the family details at the bottom filled in. Switch Console has no instructions box for a room adopted from Telegram, so set them through the server's API, signed in as an admin: `PATCH /gateway/rooms/{room_id}` with `{"instructions": "…"}`.
-4. In the Telegram group: `!assign-agent @guardian`, so every family message reaches it.
+1. In Switch Console: **Add a server** → **Run a server on this computer**.
+2. In Telegram, message [@BotFather](https://t.me/BotFather): `/newbot`, and keep the token it gives you.
+3. **Turn Group Privacy off now, before adding the bot to any group**: `/mybots` → your bot → **Bot Settings** → **Group Privacy** → **Turn off**. If you skip this, the bot never sees the family's messages.
+4. In Switch Console: the server's **Home** → **Messaging apps** → **Connect** → **Telegram**. Paste the bot token and username.
 
-### 3. Bank watch
+### 2. The family group and the two agents
 
-1. Create the agent's folder: `mkdir -p bank-watch`.
-2. In Switch Console, create a second agent named `bank-watch`, with that folder as its working directory. Switch Console writes its credentials to `bank-watch/.switch/agents/bank-watch.json`, which is git-ignored. Bank watch never runs an AI session.
-3. Add it to the family room: `!invite-agent @bank-watch` in the Telegram group.
-4. `cp family.example.toml family.toml`, then set `room_id` (the family room's id from Switch Console), `webhook_secret` and the rule limits.
-5. Try it:
+1. Make a Telegram group (this is the family group), add your bot, and send `hi`. The room appears in Switch Console. Copy its room id.
+2. In Switch Console, create two agents:
+   - `guardian`: Claude Code, any working directory. Under **Who can talk to your agent**, choose **Anyone**, so the family and Bank watch can address it.
+   - `clerk`: Claude Code, working directory `clerk/` inside this repo, **Who can talk to your agent** set to **Anyone**. Its settings there make every public post wait for a family member's approval.
+   - `bank-watch`: working directory `bank-watch/` inside this repo (`mkdir -p bank-watch` first). Switch Console writes its credentials there, git-ignored. It never runs an AI session.
+3. In the Telegram group, send:
 
-   ```bash
-   python3 -m bankwatch simulate "Dear UPI user A/C X1234 debited by 480000.00 on date 06Nov26 trf to RAKESH KUMAR Refno 431234567890. -SBI" --at 23:40
+   ```
+   !invite-agent @guardian
+   !invite-agent @clerk
+   !invite-agent @bank-watch
    ```
 
-   The alarm appears in the Telegram group and the Guardian takes over. Add `--dry-run` to see the alarm without posting it. The same SMS is ignored as a duplicate for an hour; delete `bankwatch-state.json` to start fresh.
-6. For real bank SMS:
-   - run `python3 -m bankwatch serve`
-   - expose port 8787 with a tunnel, for example `cloudflared tunnel --url http://localhost:8787`
-   - set an SMS-forwarder app on the parent's Android phone to POST bank SMS to `https://<tunnel>/sms?key=<webhook_secret>`. It accepts JSON (`text`, `message`, `body`, `msg` or `sms`) or plain text.
+### 3. Configure and check
 
-### 4. Optional: the "is this real?" line on WhatsApp
+```bash
+cp family.example.toml family.toml
+```
 
-This needs the Switch WhatsApp adapter from our fork ([sandbox-quantum/switch#1166](https://github.com/sandbox-quantum/switch/pull/1166)), plus your own Meta app and WhatsApp Business number. Create an agent named `line`, put it in the parent's WhatsApp room and the family room, and set [guardian/line-instructions.md](guardian/line-instructions.md) as the WhatsApp room's instructions.
+In `family.toml`, set `room_id` to the id you copied, and fill in `[family]`: the parent's phone, the family members as the group shows them, a neighbour as backup, and the bank. Then:
+
+```bash
+python3 -m bankwatch setup
+```
+
+`setup` checks that Bank watch can reach the room and that the Guardian is in it. It then sets the Guardian's instructions, [guardian/family-room-instructions.md](guardian/family-room-instructions.md) with your family filled in, as the room's instructions. Nothing is pasted by hand. You should see:
+
+```
+✓ Bank watch can reach the family room: …
+✓ @guardian is in the room
+✓ @clerk is in the room
+✓ Set the Guardian's instructions (… characters) with the family details
+```
+
+### 4. Fire an alarm
+
+```bash
+python3 -m bankwatch simulate "Dear UPI user A/C X1234 debited by 480000.00 on date 06Nov26 trf to RAKESH KUMAR Refno 431234567890. -SBI" --at 23:40
+```
+
+The alarm appears in the Telegram group, and the Guardian answers with three jobs. Reply as a family member, for example `@guardian I'll take 1`. The Guardian tracks it, chases the jobs nobody took, and hands the case to the Clerk, which opens the case file and writes the complaint.
+
+Then try the rest of the Clerk:
+
+- **The deadline reminder.** Bank watch posts it on the last day to report. To see it now, pretend it's that day:
+
+  ```bash
+  python3 -m bankwatch remind --at "2026-11-10 09:00"
+  ```
+
+  Use the "report to the bank by" date from your alarm.
+- **A public post.** In the group: `@clerk the bank hasn't replied, draft a post for X`. The Clerk shows a draft, and you reply `@clerk post it`. Switch then shows an approval card in the group, and the post runs only when you approve it. Without X keys it stops at "NOT POSTED"; see the extras below.
+
+Add `--dry-run` to see an alarm without posting it. The same SMS counts as a duplicate for an hour; delete `bankwatch-state.json` to fire it again.
+
+### If you get stuck
+
+| What you see | Fix |
+|---|---|
+| The group never appears in Switch Console | Group Privacy was on when the bot joined. Turn it off, remove the bot from the group, and add it again |
+| `setup`: `credentials file … does not exist` | `bank-watch`'s working directory must be `bank-watch/` in this repo. Or set `SWITCH_API_ENDPOINT`, `SWITCH_API_TOKEN` and `SWITCH_AGENT_ID` |
+| `setup`: `HTTP 403` | Bank watch isn't in the room. Send `!invite-agent @bank-watch` in the group |
+| `✗ @guardian isn't in the room` | Send `!invite-agent @guardian` in the group, then run `setup` again |
+| The alarm arrives but the Guardian stays silent | Set the Guardian's **Who can talk to your agent** to **Anyone**, and check that Claude Code is set up in Switch Console |
+| A family reply gets no answer | Start it with `@guardian`. See "Follow the conversation" below |
+| The Clerk posts nothing when you approve a public post | Check the Clerk's working directory is `clerk/` in this repo, so its approval settings and `xpost.py` are found |
+| `simulate` says `No alarm` the second time | It's a duplicate within the hour. Delete `bankwatch-state.json` |
+
+### Optional extras
+
+- **Follow the conversation.** On a server you run yourself, add `follow_the_conversation` to `FEATURE_FLAGS_ENABLED` in its `.env` and restart it, then send `!assign-agent @guardian` in the group. Family replies then reach the Guardian without `@guardian`.
+- **Publishing on X.** Create an X developer app with Read and Write permission. Put its four OAuth 1.0a keys in `family.toml` under `[x]` (see `family.example.toml`), or in `X_API_KEY`, `X_API_SECRET`, `X_ACCESS_TOKEN` and `X_ACCESS_SECRET`. X charges about $0.01 a post on its pay-per-use API. Before anything is posted, `xpost.py` refuses drafts with phone numbers, email addresses, long account-style numbers, or more than 280 characters.
+- **Real bank SMS.** Run `python3 -m bankwatch serve`, expose port 8787 with a tunnel (for example `cloudflared tunnel --url http://localhost:8787`), and point an SMS-forwarder app on the parent's Android phone at `https://<tunnel>/sms?key=<webhook_secret>`. It accepts JSON (`text`, `message`, `body`, `msg` or `sms`) or plain text. `serve` also posts the Clerk's deadline reminders, checking every 15 minutes.
+- **The parent's help line (Line) on WhatsApp or SMS.** This needs our fork of Switch, which adds the WhatsApp and SMS adapters ([sandbox-quantum/switch#1166](https://github.com/sandbox-quantum/switch/pull/1166), not merged), plus your own Meta app or SMS number. Create an agent named `line`, put it in the parent's chat room and the family room, and set [guardian/line-instructions.md](guardian/line-instructions.md) as the parent's chat room's instructions.
 
 ### Tests
 

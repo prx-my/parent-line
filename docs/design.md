@@ -16,10 +16,10 @@ These scams also rarely end with one transfer. They run for hours or days: a tra
 
 | Who | What they do |
 |---|---|
-| **Parent** | Nothing new. Optionally messages the "is this real?" line on WhatsApp. |
+| **Parent** | Nothing new. Optionally messages Line, their help line, on WhatsApp or SMS. |
 | **Family** | Two or more relatives in one Telegram group. They act when an alarm comes in. |
 | **Guardian** (AI agent) | Lives in the family group. Raises the alarm and runs the response with the family. |
-| **Line** (AI agent) | Lives in the parent's WhatsApp chat. Answers "is this real?" and alerts the family. Optional, see below. |
+| **Line** (AI agent) | Lives in the parent's WhatsApp or SMS chat. Helps with phone questions step by step, posts help cases to the family, and raises an alarm when a request is a scam. Optional, see below. |
 | **Bank watch** (small service, not an AI) | Reads the parent's bank SMS and raises the alarm when a rule fires. |
 | **Switch** | Connects all of them: the Telegram group, the WhatsApp chat and the agents. |
 
@@ -39,7 +39,11 @@ The rules are plain code, not an AI judgement: whether to wake the family about 
 
 When a rule fires, Bank watch posts the alarm in the family group through Switch and @-mentions the Guardian.
 
-### 2. "Is this real?" line (Line agent, WhatsApp)
+### 2. A scam disguised as a question (Line agent, WhatsApp or SMS)
+
+Many scams reach the parent as an ordinary request for help: "install AnyDesk so the bank can fix your KYC", "tell me the OTP", "scan this to receive your refund". A general assistant answers the question it's asked. Line checks every request against a danger list first. Because the parent already uses Line for everyday phone help, they ask it before doing the risky thing.
+
+### 2b. "Is this real?" (Line agent)
 
 The parent writes on WhatsApp what they are being told. Line:
 
@@ -47,6 +51,16 @@ The parent writes on WhatsApp what they are being told. Line:
 2. Posts the alarm in the family group and @-mentions the Guardian.
 
 It doesn't argue or lecture. It never tells the parent to keep anything from the caller, because that could put them at risk if the caller is watching.
+
+## The help line
+
+Line is the parent's everyday helper on WhatsApp or SMS, in Hindi, English or Hinglish. Its instructions are [guardian/line-instructions.md](../guardian/line-instructions.md).
+
+1. **Safety first.** Every request is checked against a danger list: remote-control apps, app files from links, OTPs and PINs, QR codes or UPI requests to "receive" money, "KYC update" and "account blocked" messages, callers posing as police or customs, "safe accounts", fees for prizes or loans, and customer-care numbers found on Google. On a match Line refuses, tells the parent it's a scam, and raises an alarm.
+2. **One step at a time.** One instruction per message, written for their phone model, checked against their reply or a photo of the screen before the next one.
+3. **The family when needed.** After three failed steps, or when it needs a password, payment, a person, or they ask for family, Line posts a help case to the family room with what they want, their phone, what's done and where they're stuck. The Guardian finds someone to call, and lets non-urgent cases wait for the morning.
+
+Line never asks for or keeps an OTP, PIN, password or card number, and gives only 1930 or numbers from the parent's card, their bank's SMS, or the family's setup.
 
 ## The response, in the family group
 
@@ -62,6 +76,16 @@ This is the workflow the hackathon asks for: the family and the Guardian get a r
 5. **Close.** When the family reports the parent safe, or says it was a real payment, the Guardian posts a short summary and closes the alarm.
 
 A false alarm costs one reply: "it's fine, she's buying the flat."
+
+## The Clerk: paperwork, deadlines and public pressure
+
+Reporting is where families give up: it's slow, confusing, and comes when everyone is upset. The Clerk is a second agent in the family room. The Guardian hands it the case once money has moved.
+
+- **Case file.** One Switch room document per incident (`create_room_document`): what happened, evidence, reports filed with their numbers, what's awaited, and what's next. Last 4 digits only; never OTPs, PINs or passwords.
+- **Complaint texts.** The 1930 / cybercrime.gov.in text, and the dispute letter to the bank's grievance address, citing RBI's July 2017 circular on customer liability.
+- **The deadline.** RBI's rule: an unauthorised electronic debit reported within 3 working days costs the customer nothing when a third party committed the fraud. Bank watch computes the date (code, not AI judgement), shows it in the alarm, and reminds the Clerk on the last day. A payment the parent made themselves under pressure may not be covered, and the Clerk says so.
+- **Escalation.** The bank's 30 days, then the RBI Ombudsman (cms.rbi.org.in). For ride apps and others: grievance officer, then the National Consumer Helpline (1915).
+- **Public posts.** When a company stays silent, a short English post on X tagging its support account, with a booking ID, vehicle number or complaint number, and never a name, phone, address or account number. `clerk/xpost.py` refuses unsafe drafts. The Clerk's Claude Code settings make the post command wait for approval, so Switch puts an approval card in the family's chat. A family member approves the exact text before it goes out.
 
 ## How it runs on Switch
 
@@ -81,7 +105,7 @@ A false alarm costs one reply: "it's fine, she's buying the flat."
 | Part | Runs on | Reproducible from a clone of official Switch? |
 |---|---|---|
 | Bank watch → family Telegram group → Guardian + family | official Switch (Telegram bridge, agent API) | yes |
-| Parent's WhatsApp "is this real?" line | Switch WhatsApp adapter, from the team's fork (PR sandbox-quantum/switch#1166, not merged) | no, runs from the fork |
+| Parent's help line (Line) on WhatsApp or SMS | Switch WhatsApp adapter, from the team's fork (PR sandbox-quantum/switch#1166, not merged) | no, runs from the fork |
 
 The core works without the WhatsApp part.
 
@@ -107,11 +131,11 @@ The WhatsApp part needs the team's own Meta app and business number. A WhatsApp 
 1. The family Telegram group is open on screen, with the Guardian in it.
 2. A sample bank SMS goes through Bank watch's simulate command (₹4,80,000 to a new payee at 23:40). It runs through the same parser and rules as a forwarded SMS. The video says it is simulated.
 3. The alarm appears in the family group. Two relatives take the jobs, the Guardian drafts the complaint, and someone reports the parent safe. The Guardian closes the alarm.
-4. If WhatsApp is ready: the parent asks Line "CBI says I'm under arrest, is this real?" on WhatsApp. The answer arrives, and the family group lights up.
+4. If WhatsApp is ready: the parent asks Line for help changing their profile photo and gets it step by step; on another request they get stuck, and a help case reaches the family with a screenshot. Then the parent asks "bank wale bol rahe AnyDesk download karo". Line refuses, and the family group lights up with an alarm.
 
 ## Languages
 
-English and Hindi. Line answers in the language the parent writes in.
+Hindi, English and Hinglish (Hindi in Latin letters) first; Gujarati and Marathi next. Line answers in the language the parent writes in. Public posts, when they come, are in English.
 
 ## Out of scope for the hackathon
 
