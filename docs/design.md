@@ -1,0 +1,128 @@
+# Parent Line design
+
+## The rule the design follows
+
+A digital-arrest victim believes the call is real and has been told to tell no one. Parent Line never depends on the parent deciding they are being scammed. The alarm starts from what is happening (money moving, or the parent checking a claim), and it goes to the family, who act on it together with an AI agent.
+
+## Why the bank's own check is not enough
+
+Banks already confirm some large transfers by calling the account holder. In a digital arrest that call reaches the one person the scammer controls. The parent has been told what to say ("yes, it's me, it's for a property deal"), and often the scammer is still on video while they say it. Every check that asks the victim "did you do this?" fails the same way.
+
+Parent Line asks someone else: the family. The NHRC recommends the same idea as "trusted-person authentication".
+
+These scams also rarely end with one transfer. They run for hours or days: a transfer, then an FD broken early, then a loan. Catching the first one saves the rest.
+
+## Who is involved
+
+| Who | What they do |
+|---|---|
+| **Parent** | Nothing new. Optionally messages the "is this real?" line on WhatsApp. |
+| **Family** | Two or more relatives in one Telegram group. They act when an alarm comes in. |
+| **Guardian** (AI agent) | Lives in the family group. Raises the alarm and runs the response with the family. |
+| **Line** (AI agent) | Lives in the parent's WhatsApp chat. Answers "is this real?" and alerts the family. Optional, see below. |
+| **Bank watch** (small service, not an AI) | Reads the parent's bank SMS and raises the alarm when a rule fires. |
+| **Switch** | Connects all of them: the Telegram group, the WhatsApp chat and the agents. |
+
+## How an alarm starts
+
+### 1. Money tripwire (Bank watch)
+
+The parent's phone forwards bank SMS to Bank watch: an Android SMS-forwarder app POSTs each SMS to a webhook. Bank watch reads the amount, payee and type, and raises the alarm on:
+
+- a debit above the family's threshold
+- a payment to a new payee
+- an FD broken early, a loan or an overdraft
+- several debits close together
+- a debit late at night
+
+The rules are plain code, not an AI judgement: whether to wake the family about money has to be predictable and testable. An ordinary bank SMS goes nowhere, so the family never sees the parent's everyday spending. Only the alarm is posted.
+
+When a rule fires, Bank watch posts the alarm in the family group through Switch and @-mentions the Guardian.
+
+### 2. "Is this real?" line (Line agent, WhatsApp)
+
+The parent writes on WhatsApp what they are being told. Line:
+
+1. Replies with one short fact in the parent's language: police, CBI, ED, customs and RBI never arrest anyone on a video call and never ask for money to "verify" it. Then the 1930 helpline.
+2. Posts the alarm in the family group and @-mentions the Guardian.
+
+It doesn't argue or lecture. It never tells the parent to keep anything from the caller, because that could put them at risk if the caller is watching.
+
+## The response, in the family group
+
+This is the workflow the hackathon asks for: the family and the Guardian get a real task done together.
+
+1. **Alarm.** The Guardian says what happened in one line, and why it matches the scam.
+2. **Jobs.** It lists the three jobs and asks who takes each:
+   - **Call the parent now** on a normal phone call. A ringing call breaks the video call's hold. If the line is busy, try the backup contact: a neighbour or nearby relative named at setup.
+   - **Report** on 1930 or cybercrime.gov.in. Reporting fast can get the money frozen.
+   - **Call the bank** to block further transfers.
+3. **Tracking.** As people reply ("1", "I'll take the bank"), the Guardian posts a status message, one line per job: ⏳ in progress, ✅ done, ❌ nobody yet. If a job is still untaken after 3 minutes, it posts the status again and names people.
+4. **Help.** It drafts the cybercrime complaint (amount, time, transaction reference, what the caller claimed), ready to paste. It also gives the bank's fraud line.
+5. **Close.** When the family reports the parent safe, or says it was a real payment, the Guardian posts a short summary and closes the alarm.
+
+A false alarm costs one reply: "it's fine, she's buying the flat."
+
+## How it runs on Switch
+
+| Switch room | Platform | Who is in it | Agent connected there |
+|---|---|---|---|
+| Family group | Telegram | The family, Guardian, Bank watch, Line | Guardian, as the room's assigned agent (`!assign-agent`), so every family message reaches it. This needs the server's `follow_the_conversation` feature flag. |
+| Parent's chat | WhatsApp, one-to-one | The parent, Line | Line |
+
+- **Why two agents.** A Switch agent gets events only from the one room it is connected to, so one agent can't hold the family group and the parent's chat at once. Line raises an alarm by hopping to the family group (`connect_to_room`), posting, and hopping back.
+- **The handover is agent to agent through Switch.** Bank watch and Line both raise the alarm by @-mentioning the Guardian in the family group. The Guardian is set to let **Anyone** address it, so another agent's mention reaches it.
+- **Bank watch is an agent identity without a session.** It connects to the family group over Switch's agent HTTP API and posts only when a rule fires.
+- **The Guardian's behaviour** comes from that room's instructions. They hold the response steps above, the message layouts, and the family details such as the backup contact.
+- **Message formatting.** Agents write Markdown, and Switch converts it for each chat app. On Telegram, bold, italics and bullets survive; headings become bold and tables stay as plain text. So the Guardian's layouts use only bold, numbered lines and bullets.
+
+### Core and optional
+
+| Part | Runs on | Reproducible from a clone of official Switch? |
+|---|---|---|
+| Bank watch → family Telegram group → Guardian + family | official Switch (Telegram bridge, agent API) | yes |
+| Parent's WhatsApp "is this real?" line | Switch WhatsApp adapter, from the team's fork (PR sandbox-quantum/switch#1166, not merged) | no, runs from the fork |
+
+The core works without the WhatsApp part.
+
+The WhatsApp part needs the team's own Meta app and business number. A WhatsApp business may send free-form messages only within 24 hours of the person's last message. If Line must message the parent first (for example "your daughter is calling you, please pick up"), that goes as an approved template. Templates are built on the fork's `feat/whatsapp-templates` branch.
+
+## Use cases
+
+| # | Situation | What happens | Status |
+|---|---|---|---|
+| 1 | Parent on a scam call, unsure, hasn't paid | Asks Line on WhatsApp. Gets one fact and 1930. The family is alerted | covered (WhatsApp part) |
+| 2 | Parent convinced, pays, confirms the bank's call | The debit SMS reaches Bank watch and the family is alerted | covered, the main case |
+| 3 | Told to split the money into small transfers | "Several debits close together" fires | covered |
+| 4 | Breaks an FD or takes a loan | The bank SMS for it fires, before money leaves | covered |
+| 5 | Parent's phone busy on the scam video call | A normal call still shows as waiting. The Guardian suggests the backup contact | covered if a backup is set |
+| 6 | Nobody in the family answers | The Guardian repeats the alarm and names people | to build |
+| 7 | Real payment, false alarm | One family reply closes it | covered |
+| 8 | Money already gone | Complaint draft, 1930, bank freeze. Speed is the point | covered |
+| 9 | Parent told to switch the phone off | Bank SMS may still arrive. If none arrive, nothing reaches Bank watch | not covered, said plainly |
+| 10 | Parent doesn't want to be "watched" | The parent agrees at setup. Bank watch sees bank SMS only, never calls or chats, and passes on only alarms | ground rule |
+
+## Demo
+
+1. The family Telegram group is open on screen, with the Guardian in it.
+2. A sample bank SMS goes through Bank watch's simulate command (₹4,80,000 to a new payee at 23:40). It runs through the same parser and rules as a forwarded SMS. The video says it is simulated.
+3. The alarm appears in the family group. Two relatives take the jobs, the Guardian drafts the complaint, and someone reports the parent safe. The Guardian closes the alarm.
+4. If WhatsApp is ready: the parent asks Line "CBI says I'm under arrest, is this real?" on WhatsApp. The answer arrives, and the family group lights up.
+
+## Languages
+
+English and Hindi. Line answers in the language the parent writes in.
+
+## Out of scope for the hackathon
+
+- Stopping a transfer. Only the bank can do that.
+- A real bank integration. Bank SMS is the only feed.
+- The agent placing a phone call.
+- Scams that never touch the bank account (gift cards, cash or crypto handed over in person).
+- A scammer pretending to be a family member.
+
+## Open questions
+
+- Each bank's SMS format differs. Start with the formats of the banks the demo family uses, plus a generic "debited ... Rs/INR" rule.
+- Can an Android forwarder app POST to a webhook reliably in the background? Test on a real phone.
+- The thresholds and the "late night" window should be set per family at setup.

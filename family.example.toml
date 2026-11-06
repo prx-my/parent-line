@@ -1,0 +1,27 @@
+# Copy to family.toml and fill in. family.toml is git-ignored.
+
+parent_name = "Mom"
+# How the Guardian is addressed in the family group: its alias there, or its registered name.
+guardian = "@guardian"
+# The family group's Switch room id (Switch Console → the room → copy id).
+room_id = ""
+# Shared secret the SMS-forwarder app sends as ?key=… or the X-Bankwatch-Key header.
+# Or set BANKWATCH_SECRET in the environment.
+webhook_secret = ""
+# The Bank watch agent's credentials file, written by Switch Console in the agent's working directory.
+# Or set SWITCH_API_ENDPOINT, SWITCH_API_TOKEN and SWITCH_AGENT_ID in the environment.
+credentials = "bank-watch/.switch/agents/bank-watch.json"
+state_file = "bankwatch-state.json"
+
+# Payees the parent pays regularly. Big debits to them still alarm; they just aren't "new".
+known_payees = ["SHARMA KIRANA STORE", "CITY ELECTRICITY BOARD"]
+
+[rules]
+large_debit = 50000       # ₹: any single debit at or above this
+new_payee_min = 10000     # ₹: a debit this big to a payee never paid before
+burst_count = 3           # this many debits...
+burst_minutes = 60        # ...within this many minutes...
+burst_min_total = 25000   # ...adding up to at least this, ₹
+night_start = "22:00"     # a debit between these times...
+night_end = "06:00"
+night_min = 5000          # ...of at least this, ₹

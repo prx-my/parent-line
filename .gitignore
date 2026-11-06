@@ -1,0 +1,5 @@
+family.toml
+bankwatch-state.json
+*.tmp
+.switch/
+__pycache__/
