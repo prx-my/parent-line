@@ -50,7 +50,7 @@ import { repo } from "../content";
 </section>
 
 <style>
-  .hero { border-top: 0; padding-top: calc(64px + var(--sp-head)); }
+  .hero { border-top: 0; padding-top: calc(64px + clamp(32px, 4vw, 56px)); }
   .title { max-width: 14ch; }
   .actions { display: flex; flex-wrap: wrap; align-items: center; gap: 20px 28px; margin-top: 40px; }
   .sms { margin-top: 16px; font: 400 var(--fs-small)/1.65 var(--mono); overflow-wrap: anywhere; }
