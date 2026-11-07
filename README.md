@@ -6,6 +6,8 @@ Parent Line tells the family instead. When the parent's bank SMS looks like a sc
 
 It runs on [Switch](https://github.com/sandbox-quantum/switch), which makes the family's Telegram group a room where family members, AI agents and three small services (Bank watch, Ride watch and Call watch) all work together.
 
+**[Demo video](https://youtu.be/VWSH7CKUek0)** · **[Website](https://web-jet-three-69.vercel.app/)** · **[My pull requests to Switch](#my-pull-requests-to-switch)**
+
 ## How it works
 
 1. **Bank watch reads the parent's bank SMS.** It fires on scam patterns: a large debit, a new payee, an FD broken early, a loan, several debits close together, a debit late at night. The rules are plain code, not an AI judgement, so they are predictable and tested. Ordinary spending goes nowhere; the family sees only alarms.
@@ -116,6 +118,7 @@ Switch connects every part. Without it, nothing reaches anyone.
 | [tests/](tests/) | Tests for Bank watch, Ride watch, Call watch and `xpost.py` |
 | [docs/design.md](docs/design.md) | The design: why the bank's check isn't enough, the response, use cases, what's out of scope |
 | [docs/roadmap.md](docs/roadmap.md) | What's built, what's waiting on Switch pull requests, and what comes next |
+| [web/](web/) | The Parent Line website (Astro), deployed at [web-jet-three-69.vercel.app](https://web-jet-three-69.vercel.app/) |
 
 ## Run it
 
@@ -284,3 +287,14 @@ python3 -m unittest discover -s tests
 - A missed call says only that the parent called, not why. If Switch can't be reached, Call watch tries three times, 5 seconds apart, and then logs the lost SOS; Twilio doesn't resend a call.
 - A Twilio number from outside India is an international call for the parent. Unanswered calls aren't charged, but some Indian operators block international calls on prepaid plans. Test it from the parent's own phone first.
 - The ride alarm appears in the family group, which is on the rider's phone too. Someone reading their screen after the code word will see it.
+
+## My pull requests to Switch
+
+Written during the hackathon. Three are for issues labelled `hackathon` and assigned to me; the Telegram one came out of building Parent Line. All four are open.
+
+| Pull request | Issue | What it does |
+|---|---|---|
+| [sandbox-quantum/switch#1166](https://github.com/sandbox-quantum/switch/pull/1166) | [#789 Add WhatsApp as a messaging platform](https://github.com/sandbox-quantum/switch/issues/789) | Adds WhatsApp as a Switch messaging platform, so a WhatsApp chat becomes a Switch room. Parent Line's help line (Line) runs on it, in the chat app parents already use. |
+| [sandbox-quantum/switch#1244](https://github.com/sandbox-quantum/switch/pull/1244) | [#796 Add SMS (Twilio) as a messaging platform](https://github.com/sandbox-quantum/switch/issues/796) | Adds SMS through Twilio as a Switch messaging platform, for parents without WhatsApp or a smartphone. |
+| [sandbox-quantum/switch#1585](https://github.com/sandbox-quantum/switch/pull/1585) | None; found while building Parent Line | Adds a **Show tool calls** setting to Telegram connections. With it off, the family group sees only the agents' answers and approval cards, not lists of internal tool calls such as `mcp__switch__read_context`. |
+| [sandbox-quantum/switch#1576](https://github.com/sandbox-quantum/switch/pull/1576) | [#822 Add the Microsoft 365 connector](https://github.com/sandbox-quantum/switch/issues/822) | An investigation report on connecting Switch to Microsoft 365 (Work IQ versus Microsoft Graph, licensing, write policy, identity), and a disabled draft of the recommended connector entry. Not used by Parent Line. |
