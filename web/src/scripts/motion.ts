@@ -74,24 +74,24 @@ function hero() {
     .from("[data-hero-intro] > :not(h1), #run > *", { y: 24, opacity: 0, duration: 1, stagger: 0.1 }, "-=1")
     .from("[data-hero-sms] .meta-row", { opacity: 0, y: 12, duration: 0.6 }, "-=0.8")
     .to(sms, { text: { value: smsText }, duration: 1.4, ease: "none" }, "-=0.4")
-    .fromTo("[data-via-path]", { drawSVG: "0%" }, { drawSVG: "50%", duration: 0.5, ease: "power2.in" })
+    .fromTo("[data-via-path]", { scaleY: 0 }, { scaleY: 0.5, duration: 0.5, ease: "power2.in" })
     .from("[data-via-node]", { scale: 0, transformOrigin: "50% 50%", duration: 0.4, ease: "back.out(3)" }, "-=0.1")
     .from(".via-text p", { opacity: 0, x: -8, duration: 0.4 }, "<");
   rules.forEach((r, i) =>
     intro.to(r, { scrambleText: { text: ruleText[i], chars: "0123456789₹#", speed: 0.6 }, duration: 0.6, ease: "none" }, i ? "-=0.35" : ">"),
   );
   intro
-    .to("[data-via-path]", { drawSVG: "100%", duration: 0.5, ease: "power2.out" })
+    .to("[data-via-path]", { scaleY: 1, duration: 0.5, ease: "power2.out" })
     .from("[data-hero-alarm] > *", { y: 24, opacity: 0, duration: 0.9, stagger: 0.08 }, "-=0.1");
 
   // After the intro, one message at a time keeps travelling from the SMS through Bank watch to the alarm.
   const dot = $("[data-via-dot]");
   const node = $("[data-via-node]");
   const loop = gsap.timeline({ repeat: -1, repeatDelay: 1.4, delay: intro.duration() })
-    .set(dot, { attr: { cy: 0 }, opacity: 1 })
-    .to(dot, { attr: { cy: 60 }, duration: 0.7, ease: "power1.in" })
+    .set(dot, { top: "0%", opacity: 1 })
+    .to(dot, { top: "50%", duration: 0.7, ease: "power1.in" })
     .to(node, { scale: 1.35, transformOrigin: "50% 50%", duration: 0.15, yoyo: true, repeat: 1 })
-    .to(dot, { attr: { cy: 120 }, duration: 0.7, ease: "power1.out" })
+    .to(dot, { top: "100%", duration: 0.7, ease: "power1.out" })
     .to(dot, { opacity: 0, duration: 0.2 });
   whileVisible($(".hero"), loop);
 }
@@ -215,68 +215,109 @@ function alarm(mm: gsap.MatchMedia) {
   });
 }
 
-// The room: hairlines run from the hub to each seat, then messages keep moving along them.
-// Alarms travel into the room in red; the people and agents who talk get messages back out in ink.
+// The room: services post alarms in on the left; Switch delivers them to the people and agents on the
+// right, whose replies come back. Each message travels its wire and then appears in the room's history.
+type RoomLine = { from: string; who: string; text: string; alarm: boolean };
+
 function room() {
-  const map = $("[data-room]");
-  const hub = $("[data-hub]", map);
-  const seats = $$("[data-seat]", map);
-  const rows = $$("[data-row]");
-  const links = seats.map((seat) => {
-    const link = document.createElement("span");
-    link.className = "link";
-    link.setAttribute("aria-hidden", "true");
-    const line = document.createElement("i");
-    const packet = document.createElement("b");
-    if (seat.dataset.flow === "alarm") packet.className = "in";
-    link.append(line, packet);
-    map.prepend(link);
-    return link;
+  const SVG_NS = "http://www.w3.org/2000/svg";
+  const flow = $("[data-flow]");
+  const svg = $<SVGSVGElement>("[data-wires]", flow);
+  const box = $("[data-room-box]", flow);
+  const log = $("[data-log]", flow);
+  const nodes = $$("[data-node]", flow);
+  const scenes: RoomLine[][] = JSON.parse(flow.dataset.scenes!);
+
+  const wires = new Map<string, SVGPathElement>();
+  const dots = new Map<string, SVGRectElement>();
+  nodes.forEach((n) => {
+    const path = document.createElementNS(SVG_NS, "path");
+    if (n.classList.contains("optional")) path.classList.add("dash");
+    const dot = document.createElementNS(SVG_NS, "rect");
+    for (const [k, v] of Object.entries({ x: "-4", y: "-4", width: "8", height: "8", opacity: "0" })) dot.setAttribute(k, v);
+    svg.append(path, dot);
+    wires.set(n.dataset.node!, path);
+    dots.set(n.dataset.node!, dot);
   });
+
+  // Each wire runs from its node's port to the room's nearer edge, spread down that edge in the nodes' order.
   const layout = () => {
-    const { width, height } = map.getBoundingClientRect();
-    seats.forEach((s, i) => {
-      const dx = (parseFloat(s.style.getPropertyValue("--x")) / 100 - 0.5) * width;
-      const dy = (parseFloat(s.style.getPropertyValue("--y")) / 100 - 0.5) * height;
-      links[i].style.width = `${Math.hypot(dx, dy)}px`;
-      links[i].style.transform = `rotate(${Math.atan2(dy, dx)}rad)`;
-    });
+    const f = flow.getBoundingClientRect();
+    const r = box.getBoundingClientRect();
+    svg.setAttribute("viewBox", `0 0 ${f.width} ${f.height}`);
+    for (const side of ["in", "out"]) {
+      const group = nodes.filter((n) => n.dataset.side === side);
+      group.forEach((n, i) => {
+        const port = $("[data-port]", n).getBoundingClientRect();
+        const x1 = (side === "in" ? port.right : port.left) - f.left;
+        const y1 = port.top + port.height / 2 - f.top;
+        const x2 = (side === "in" ? r.left : r.right) - f.left;
+        const y2 = r.top - f.top + r.height * (0.28 + 0.44 * (group.length > 1 ? i / (group.length - 1) : 0.5));
+        const dx = (x2 - x1) / 2;
+        wires.get(n.dataset.node!)!.setAttribute("d", `M${x1} ${y1} C${x1 + dx} ${y1} ${x2 - dx} ${y2} ${x2} ${y2}`);
+      });
+    }
   };
+
+  const push = (line: RoomLine) => {
+    const li = document.createElement("li");
+    if (line.alarm) li.className = "alarm";
+    const who = document.createElement("b");
+    who.textContent = line.who;
+    const text = document.createElement("span");
+    text.textContent = line.text;
+    li.append(who, text);
+    log.append(li);
+    while (log.children.length > 4) log.firstElementChild!.remove();
+    gsap.from(li, { y: 14, opacity: 0, duration: 0.5, ease: "expo.out" });
+  };
+
+  // A message travels between a node and the room: towards the room for an alarm or a reply, away from it for a delivery.
+  const travel = (tl: gsap.core.Timeline, key: string, toRoom: boolean, alarm: boolean) => {
+    const path = wires.get(key)!;
+    const dot = dots.get(key)!;
+    tl.call(() => { path.classList.add("lit"); dot.classList.toggle("alarm", alarm); })
+      .set(dot, { opacity: 1 })
+      .to(dot, { motionPath: { path, start: toRoom ? 0 : 1, end: toRoom ? 1 : 0 }, duration: 0.9, ease: "power1.inOut" })
+      .set(dot, { opacity: 0 })
+      .call(() => path.classList.remove("lit"));
+  };
+
   layout();
-  ScrollTrigger.addEventListener("refreshInit", layout);
+  const tl = gsap.timeline({ repeat: -1 });
+  scenes.forEach((scene) => {
+    tl.call(() => log.replaceChildren());
+    scene.forEach((line) => {
+      if (line.alarm) travel(tl, line.from, true, true);
+      else {
+        travel(tl, line.from, false, false);
+        travel(tl, line.from, true, false);
+      }
+      tl.call(() => push(line)).to({}, { duration: 0.7 });
+    });
+    tl.to({}, { duration: 2.4 });
+  });
+  whileVisible(flow, tl);
 
-  // Pointing at a row in the list lights up that participant's line in the diagram, and the other way round.
-  const highlight = (i: number | null) => {
-    rows.forEach((r, k) => r.classList.toggle("active", k === i));
-    seats.forEach((s, k) => s.classList.toggle("dim", i !== null && k !== i));
-    links.forEach((l, k) => { l.classList.toggle("active", k === i); l.classList.toggle("dim", i !== null && k !== i); });
-  };
-  [...rows, ...seats].forEach((el) => {
-    const i = Number(el.dataset.row ?? el.dataset.seat);
-    el.addEventListener("pointerenter", () => highlight(i));
-    el.addEventListener("pointerleave", () => highlight(null));
-    el.addEventListener("focus", () => highlight(i));
-    el.addEventListener("blur", () => highlight(null));
+  const relayout = () => { layout(); tl.invalidate(); };
+  ScrollTrigger.addEventListener("refreshInit", relayout);
+  new ResizeObserver(relayout).observe(flow);
+
+  // Pointing at a node lights up its wire.
+  nodes.forEach((n) => {
+    const path = wires.get(n.dataset.node!)!;
+    const on = () => path.classList.add("lit");
+    const off = () => path.classList.remove("lit");
+    n.addEventListener("pointerenter", on);
+    n.addEventListener("pointerleave", off);
+    n.addEventListener("focus", on);
+    n.addEventListener("blur", off);
   });
 
-  gsap.timeline({ scrollTrigger: { trigger: map, start: "top 78%" } })
-    .from(hub, { opacity: 0, duration: 1, ease: "expo.out" })
-    .from(links.map((l) => l.firstChild), { scaleX: 0, duration: 0.9, stagger: 0.07, ease: "power3.inOut" }, "-=0.7")
-    .from(seats, { opacity: 0, duration: 0.8, stagger: 0.07, ease: "power2.out" }, "-=0.7");
-
-  const css = getComputedStyle(document.documentElement);
-  const stamp = css.getPropertyValue("--stamp").trim(), ink = css.getPropertyValue("--ink").trim();
-  const traffic = gsap.timeline({ repeat: -1 });
-  links.forEach((link, i) => {
-    const packet = link.lastChild as HTMLElement;
-    const inbound = packet.classList.contains("in");
-    traffic
-      .fromTo(packet, { left: inbound ? "100%" : "0%" }, { left: inbound ? "0%" : "100%", duration: 1.3, ease: "power1.inOut" }, i * 0.55)
-      .fromTo(packet, { opacity: 0 }, { opacity: 1, duration: 0.15 }, i * 0.55)
-      .to(packet, { opacity: 0, duration: 0.15 }, i * 0.55 + 1.15)
-      .to(hub, { borderColor: inbound ? stamp : ink, duration: 0.15, yoyo: true, repeat: 1 }, i * 0.55 + (inbound ? 1.2 : 0));
-  });
-  whileVisible(map, traffic);
+  gsap.timeline({ scrollTrigger: { trigger: flow, start: "top 78%" } })
+    .from(box, { opacity: 0, y: 20, duration: 1, ease: "expo.out" })
+    .from(nodes, { opacity: 0, y: 14, duration: 0.8, stagger: 0.06, ease: "expo.out" }, "-=0.7")
+    .from(svg, { opacity: 0, duration: 0.8 }, "-=0.5");
 }
 
 function ways() {

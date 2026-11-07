@@ -62,16 +62,41 @@ export const alarmSteps: AlarmStep[] = [
   },
 ];
 
-// flow: "alarm" seats only post into the room (alarms, drawn red); "talk" seats read and post.
-export type Seat = { x: number; y: number; name: string; kind: string; call: string; flow: "alarm" | "talk" };
+// The room diagram. Services on the left post alarms into the room; Switch delivers them to the
+// people and agents on the right, whose replies come back into the room's history.
+export type RoomNode = { key: string; name: string; kind: string; call: string; optional: boolean };
 
-// Positions are percentages of a square diagram, evenly spaced on a circle around the room.
-export const seats: Seat[] = [
-  { x: 50, y: 12, name: "The family", kind: "people", call: "Telegram bridge", flow: "talk" },
-  { x: 79.7, y: 26.3, name: "Guardian", kind: "AI agent", call: "the room's instructions", flow: "talk" },
-  { x: 87, y: 58.5, name: "Clerk", kind: "AI agent", call: "create_room_document", flow: "talk" },
-  { x: 66.5, y: 84.2, name: "Line", kind: "AI agent, optional", call: "connect_to_room", flow: "alarm" },
-  { x: 33.5, y: 84.2, name: "Call watch", kind: "service, no AI", call: "Twilio in, agent API out", flow: "alarm" },
-  { x: 13, y: 58.5, name: "Ride watch", kind: "service, no AI", call: "GET /agents/{id}/events", flow: "alarm" },
-  { x: 20.3, y: 26.3, name: "Bank watch", kind: "service, no AI", call: "POST /agents/{id}/message", flow: "alarm" },
+export const roomInputs: RoomNode[] = [
+  { key: "bank", name: "Bank watch", kind: "code", call: "POST /agents/{id}/message", optional: false },
+  { key: "ride", name: "Ride watch", kind: "code", call: "GET /agents/{id}/events", optional: false },
+  { key: "call", name: "Call watch", kind: "code", call: "Twilio in, agent API out", optional: false },
+  { key: "line", name: "Line", kind: "AI agent, optional", call: "connect_to_room", optional: true },
+];
+
+export const roomActors: RoomNode[] = [
+  { key: "guardian", name: "Guardian", kind: "AI agent", call: "the room's instructions", optional: false },
+  { key: "family", name: "The family", kind: "people", call: "Telegram bridge", optional: false },
+  { key: "clerk", name: "Clerk", kind: "AI agent", call: "create_room_document", optional: false },
+];
+
+// What the room's history shows, one case at a time. "from" is the node that posts the line.
+export type RoomLine = { from: string; who: string; text: string; alarm: boolean };
+
+export const roomScenes: RoomLine[][] = [
+  [
+    { from: "bank", who: "Bank watch", text: "Bank alarm: Mom, 23:40. ₹4,80,000 left the account.", alarm: true },
+    { from: "guardian", who: "Guardian", text: "Three jobs: call Mom, report on 1930, call SBI.", alarm: false },
+    { from: "family", who: "Riya", text: "@guardian I'll take 1", alarm: false },
+    { from: "clerk", who: "Clerk", text: "Case file opened.", alarm: false },
+  ],
+  [
+    { from: "call", who: "Call watch", text: "Mom gave a missed call. Who's calling Mom?", alarm: true },
+    { from: "guardian", who: "Guardian", text: "Riya, Arjun: who can call Mom now?", alarm: false },
+    { from: "family", who: "Arjun", text: "Calling her now.", alarm: false },
+  ],
+  [
+    { from: "ride", who: "Ride watch", text: "Ride alarm: Riya hasn't said she reached.", alarm: true },
+    { from: "guardian", who: "Guardian", text: "Call Riya, open the trip link, call 112 if no answer.", alarm: false },
+    { from: "family", who: "Arjun", text: "Riya picked up. She's fine.", alarm: false },
+  ],
 ];

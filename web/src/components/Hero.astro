@@ -21,13 +21,11 @@ import Run from "./Run.astro";
         </div>
 
         <div class="via">
-          <svg class="via-svg" viewBox="0 0 24 120" preserveAspectRatio="none" aria-hidden="true">
-            <path class="soft-line" d="M12 0 V120" />
-            <path class="ink-line" data-via-path d="M12 0 V120" />
-            <rect class="paper-fill" x="5" y="53" width="14" height="14" />
-            <rect class="ink-line" data-via-node x="5" y="53" width="14" height="14" />
-            <circle class="stamp-fill" data-via-dot cx="12" cy="0" r="3.5" opacity="0" />
-          </svg>
+          <div class="wire" aria-hidden="true">
+            <span class="wire-fill" data-via-path></span>
+            <span class="wire-node" data-via-node></span>
+            <span class="wire-dot" data-via-dot></span>
+          </div>
           <div class="via-text">
             <p class="meta">Bank watch</p>
             <ul class="rules">
@@ -41,7 +39,7 @@ import Run from "./Run.astro";
         <div data-hero-alarm>
           <div class="meta-row"><span>Bank watch, in the family group</span><span>23:40</span></div>
           <p class="h3 alarm alarm-title">Bank alarm: Mom, 23:40</p>
-          <p class="h4">₹4,80,000 left the account to RAKESH KUMAR.</p>
+          <p class="h4 amount">₹4,80,000 left the account to RAKESH KUMAR.</p>
           <p class="meta">@guardian over to you.</p>
         </div>
       </div>
@@ -53,18 +51,30 @@ import Run from "./Run.astro";
 
 <style>
   .hero { border-top: 0; padding-top: calc(64px + clamp(32px, 4vw, 56px)); }
-  .top { align-items: center; row-gap: var(--sp-block); }
-  .intro { display: grid; gap: 28px; justify-items: start; }
+  /* Both columns stretch to the same height: the example starts level with the headline and ends level with the buttons */
+  .top { align-items: stretch; row-gap: var(--sp-block); }
+  .scene { display: flex; flex-direction: column; }
+  .intro { display: grid; gap: 28px; justify-items: start; align-content: start; }
   /* Sized to half the grid, so the headline and the example beside it come out about the same height */
   .title { font-size: clamp(3rem, 5.9vw, 5.75rem); line-height: 0.9; font-stretch: 75%; font-weight: 650; letter-spacing: -0.012em; }
   .actions { display: flex; flex-wrap: wrap; align-items: center; gap: 20px 28px; margin-top: 8px; }
 
-  .sms { margin-top: 14px; font: 400 var(--fs-small)/1.65 var(--mono); overflow-wrap: anywhere; }
-  .via { display: grid; grid-template-columns: 24px minmax(0, 1fr); column-gap: var(--sp-item); height: 120px; margin-block: 16px; }
-  .via-svg { width: 24px; height: 120px; }
+  .sms { margin-top: 14px; font: 400 clamp(0.9375rem, 1.15vw, 1.0625rem)/1.65 var(--mono); overflow-wrap: anywhere; }
+  /* The wire between the SMS and the alarm takes up whatever height is left, so the example ends level with the buttons */
+  .via { flex: 1 1 auto; min-height: 76px; display: grid; grid-template-columns: 24px minmax(0, 1fr); column-gap: var(--sp-item); margin-block: 10px; }
+  .wire { position: relative; }
+  .wire::before { content: ""; position: absolute; left: 11.5px; top: 0; bottom: 0; width: 1px; background: var(--rule-strong); }
+  .wire-fill { position: absolute; left: 11px; top: 0; bottom: 0; width: 2px; background: var(--ink); transform-origin: top; }
+  .wire-node { position: absolute; left: 5px; top: 50%; width: 14px; height: 14px; margin-top: -7px; border: 1.5px solid var(--ink); background: var(--paper); }
+  .wire-dot { position: absolute; left: 8.5px; top: 0; width: 7px; height: 7px; margin-top: -3.5px; border-radius: 50%; background: var(--stamp); opacity: 0; }
   .via-text { align-self: center; }
-  .rules { list-style: none; margin: 6px 0 0; padding: 0; display: grid; gap: 2px; font: 400 0.8125rem/1.6 var(--mono); }
+  .rules { list-style: none; margin: 6px 0 0; padding: 0; display: grid; gap: 4px; font: 400 clamp(0.875rem, 1.05vw, 1rem)/1.6 var(--mono); }
   .rules li::before { content: "→ "; color: var(--stamp); }
-  .alarm-title { margin-top: 16px; }
+  /* On narrower screens the headline is shorter, so the rules share one line to keep the columns level */
+  @media (min-width: 901px) and (max-width: 1339px) {
+    .rules { display: flex; flex-wrap: wrap; gap: 2px 14px; }
+  }
+  .alarm-title { margin-top: 16px; font-size: clamp(2rem, 3.5vw, 3.25rem); }
+  .amount { font-size: clamp(1.25rem, 1.8vw, 1.625rem); }
   [data-hero-alarm] p + p { margin-top: 8px; }
 </style>
