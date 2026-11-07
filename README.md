@@ -13,7 +13,8 @@ It runs on [Switch](https://github.com/sandbox-quantum/switch), which makes the 
 3. **The family and the Guardian respond together.** Someone calls the parent on a normal call, which breaks the video call's hold. Someone reports on 1930 or cybercrime.gov.in. Someone calls the bank. The Guardian tracks who has which job, chases the jobs nobody took, and closes the alarm when the parent is safe.
 4. **The Clerk handles the paperwork.** The Guardian hands it the case. It keeps a case file as a Switch room document, writes the 1930 complaint and the letter to the bank, and tracks RBI's reporting deadline: 3 working days for an unauthorised debit, with a reminder on the last day. When a bank, ride app or railway doesn't answer, it drafts a public post on X tagging the company. After a family member says to post it, the Clerk sends a link in the chat. Tapping it opens X with the text already filled in, on whichever account that person is signed in to, and they press Post themselves. Nothing is published by an agent, and the text never carries names, phone numbers or account numbers.
 5. **Ride watch: a check-in for a ride alone at night.** Before an Ola, Uber, Rapido or auto ride, anyone in the group writes `@ride-watch 25 min` and pastes the app's share-trip message. If they haven't said `reached` 10 minutes after that time, Ride watch asks. With no answer in 5 more minutes, it raises the alarm for the Guardian with what they shared (vehicle number, driver's name, rating and phone, trip link), and the family gets three jobs: call them, check the trip link, call 112. A code word (`@ride-watch pizza`) raises it at once, for when they can't talk freely. It runs only when someone starts it. Nobody is tracked otherwise.
-6. **Optional: Line, the parent's help line.** An agent in the parent's WhatsApp or SMS chat helps with phone questions one step at a time, in Hindi, English or Hinglish. When a request is really a scam ("install AnyDesk", "tell me the OTP"), it refuses and raises the alarm in the family group. This part needs Switch's WhatsApp or SMS adapter, both still open pull requests; everything above runs on official Switch.
+6. **Missed-call SOS.** The parent saves the family's number as "Family SOS" and gives it a missed call when a caller scares them or they need someone. Call watch rejects the call, so it costs them nothing, and posts "📞 Mom gave a missed call. Who's calling Mom?" for the Guardian, who gets someone to ring them back. One tap on a number they already know how to dial works for a parent who can't type or use an app.
+7. **Optional: Line, the parent's help line.** An agent in the parent's WhatsApp or SMS chat helps with phone questions one step at a time, in Hindi, English or Hinglish. When a request is really a scam ("install AnyDesk", "tell me the OTP"), it refuses and raises the alarm in the family group. This part needs Switch's WhatsApp or SMS adapter, both still open pull requests; everything above runs on official Switch.
 
 The full design is in [docs/design.md](docs/design.md).
 
@@ -98,6 +99,7 @@ Switch connects every part. Without it, nothing reaches anyone.
 | **Clerk** | An AI agent (Claude Code), working in [clerk/](clerk/) | In the family room beside the Guardian. The Guardian hands it the case (`@clerk please open a case`), an agent-to-agent handoff through Switch. It keeps the case file as a Switch room document (`create_room_document`). Its public posts run `clerk/xpost.py intent`, which checks the draft and prints an X link with the text filled in; the Clerk sends it in the family's chat and a person presses Post. The optional `xpost.py post` publishes through the X API instead, and [clerk/.claude/settings.json](clerk/.claude/settings.json) makes that wait for Switch's approval card. |
 | **Bank watch** | A small Python service: [bankwatch/](bankwatch/) | A Switch agent identity with no AI session. When a rule fires, it posts the alarm into the family room through Switch's agent API (`POST /agents/{id}/message`) and @-mentions the Guardian, and Switch delivers that mention. It also reminds the Clerk on the last day to report a debit to the bank. `setup` uses its agent key to set the room's instructions (`update_room`). |
 | **Ride watch** | A small Python service: [ridewatch/](ridewatch/) | Another Switch agent identity with no AI session. It reads the messages addressed to it through Switch's agent event stream (`GET /agents/{id}/events`, a long poll), keeps the clock that the AI agents can't, and posts the check-in and the alarm through the same API as Bank watch. It never reads a screenshot: it keeps the image's Switch media id and lists it in the alarm, and the Guardian, which is Claude, downloads it with its Switch `download_attachment` tool and reads it. The alarm @-mentions the Guardian. |
+| **Call watch** | A small Python service: [callwatch/](callwatch/) | A third Switch agent identity with no AI session. Twilio sends each call to the family's number to it; it checks Twilio's signature and the caller's number, rejects the call, and posts the 📞 SOS into the family room through Switch's agent API, @-mentioning the Guardian. |
 | **Line** (optional) | The parent's help line: an AI agent in their WhatsApp or SMS chat | Switch's WhatsApp or SMS bridge makes the chat a room. Line helps the parent there, then hops to the family room (`connect_to_room`) to post a help case or raise an alarm. Its behaviour is the room's instructions: [guardian/line-instructions.md](guardian/line-instructions.md). Those adapters are open pull requests to Switch; see Optional extras below. |
 
 ## What's in this repo
@@ -106,11 +108,12 @@ Switch connects every part. Without it, nothing reaches anyone.
 |---|---|
 | [bankwatch/](bankwatch/) | Bank watch: SMS parser (`parse.py`), rules and alarm text (`rules.py`), the Switch client (`switch.py`), room setup (`setup.py`), and the `simulate`, `serve`, `setup` and `remind` commands (`__main__.py`). Python standard library only |
 | [ridewatch/](ridewatch/) | Ride watch: reading the arrival time and the ride details, the check-in and the alarm (`rides.py`), and the `serve` loop (`__main__.py`). It reuses Bank watch's config and Switch client |
+| [callwatch/](callwatch/) | Call watch: Twilio's call webhook, its signature check, the rejected call and the SOS post (`__main__.py`). It reuses Bank watch's config and Switch client |
 | [guardian/family-room-instructions.md](guardian/family-room-instructions.md) | The family room's instructions: the Guardian's and the Clerk's parts, their message layouts, and the family details `setup` fills in |
 | [clerk/](clerk/) | The Clerk's working directory: `xpost.py` checks X drafts and builds the link that opens X with a draft filled in, and `.claude/settings.json` makes the optional API `post` wait for approval |
 | [guardian/line-instructions.md](guardian/line-instructions.md) | Line's instructions, for the optional WhatsApp or SMS help line |
 | [family.example.toml](family.example.toml) | The template for `family.toml`: room, family details, alarm thresholds, optional X keys |
-| [tests/](tests/) | Tests for Bank watch, Ride watch and `xpost.py` |
+| [tests/](tests/) | Tests for Bank watch, Ride watch, Call watch and `xpost.py` |
 | [docs/design.md](docs/design.md) | The design: why the bank's check isn't enough, the response, use cases, what's out of scope |
 
 ## Run it
@@ -213,6 +216,25 @@ Add `--dry-run` to see an alarm without posting it. The same SMS counts as a dup
 
 The time can be `25 min`, `1 hr`, `23:40` or `11:40 pm`. Details can come in the same message as the time (time first) or in any later one while the ride is watched. Ride watch picks out the vehicle number, the driver's name, rating and phone, the app and the trip link, and keeps everything else as written. Once a ride is watched, a share-trip message's own times ("driver 3 mins away") don't move the check-in; to change it, send just the new time. Screenshots work too: send one with `@ride-watch` as the caption (or `@ride-watch 25 min` to start the ride with it). Ride watch keeps it without reading it, and if the alarm fires the Guardian reads it and posts the vehicle, driver and phone for the family. So no AI reads anything on a ride that ends safely. Typed ride OTPs are blanked, and the Guardian is told never to copy one from a screenshot. `@ride-watch pizza` (the `code_word`) raises the alarm at once. A family member can close someone's ride by name: `@ride-watch Riya reached`.
 
+### 6. Missed-call SOS
+
+You need a [Twilio](https://www.twilio.com/) account with a phone number that takes voice calls (the trial is enough) and [cloudflared](https://developers.cloudflare.com/cloudflare-one/connections/connect-networks/downloads/) for a public address.
+
+1. In Switch Console, create an agent `call-watch` with working directory `call-watch/` inside this repo (`mkdir -p call-watch` first). In the Telegram group, send `!invite-agent @call-watch`.
+2. Start a tunnel and keep it running: `cloudflared tunnel --url http://localhost:8788`. It prints an `https://….trycloudflare.com` address.
+3. In `family.toml`, under `[call]` (copy it from `family.example.toml`), set `public_url` to that address and `parent_numbers` to the parent's mobile number(s), with the country code.
+4. In Twilio: **Phone Numbers** → your number → **Voice Configuration** → **A call comes in** → **Webhook**, `https://….trycloudflare.com/voice`, **HTTP POST**. Save.
+5. Run it with the Auth Token from Twilio's console home page, and leave it running:
+
+   ```bash
+   TWILIO_AUTH_TOKEN=… python3 -m callwatch serve
+   ```
+
+6. Call the Twilio number from the parent's phone. It sounds busy and hangs up at once, and the 📞 post appears in the group. The Guardian asks someone to call the parent back.
+7. Save the Twilio number in the parent's phone as "Family SOS", and tell them: "If anyone on the phone scares you, or you need us, give a missed call to Family SOS."
+
+A quick cloudflared address changes every time it restarts: update `public_url` and Twilio's webhook together. A call from any other number is rejected and only logged, and a request without Twilio's signature gets HTTP 403.
+
 ### If you get stuck
 
 | What you see | Fix |
@@ -227,6 +249,7 @@ The time can be `25 min`, `1 hr`, `23:40` or `11:40 pm`. Details can come in the
 | The Clerk says it can't make a link | Check the Clerk's working directory is `clerk/` in this repo, so `xpost.py` is found |
 | `ride-watch` posts "Starting a session to handle this", or a ride alarm before its check-in | Console is running an AI session as ride-watch. Press **Stop** under **Room watcher** on ride-watch's page in Console, end that session, and keep `python3 -m ridewatch serve` running |
 | Ride watch never answers 👀 | Check it is running and was invited (`!invite-agent @ride-watch`). If its log says `Ignoring a message from room …`, set `room_id` in `family.toml` to that room |
+| A missed call posts nothing | Check Call watch's log. `Rejected a call from …` means that number isn't in `parent_numbers`. No log line at all means Twilio isn't reaching it: check the webhook address matches the running tunnel. Twilio's **Monitor** → **Logs** → **Errors** shows a 403 when `public_url` doesn't match the webhook address exactly |
 | `simulate` says `No alarm` the second time | It's a duplicate within the hour. Delete `bankwatch-state.json` |
 | Every agent message in Telegram ends with a list of the tools it called | That's the Telegram connection's tool-call display. An open pull request ([sandbox-quantum/switch#1585](https://github.com/sandbox-quantum/switch/pull/1585)) adds a **Show tool calls** box to **Connect** → **Telegram**; untick it when you connect. An existing connection can't be changed from Switch Console or the web dashboard. Leave it on there: disconnecting removes the family room with its instructions and the Clerk's case files, and you would have to set everything up again |
 
@@ -256,4 +279,6 @@ python3 -m unittest discover -s tests
 - Parent Line can't stop a transfer. Only the bank can, which is why "call the bank" is one of the three jobs.
 - Ride watch knows only that the rider hasn't said they reached, not where they are. Ola, Uber and Rapido offer no API for a trip, so the location is the share-trip link a person opens, and Switch's Telegram bridge doesn't pass on Telegram's live location.
 - Ride watch only watches rides someone starts. It doesn't replace 112 or the ride app's SOS button; it makes sure the family notices and acts.
+- A missed call says only that the parent called, not why. If Switch can't be reached, Call watch tries three times, 5 seconds apart, and then logs the lost SOS; Twilio doesn't resend a call.
+- A Twilio number from outside India is an international call for the parent. Unanswered calls aren't charged, but some Indian operators block international calls on prepaid plans. Test it from the parent's own phone first.
 - The ride alarm appears in the family group, which is on the rider's phone too. Someone reading their screen after the code word will see it.

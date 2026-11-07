@@ -36,6 +36,13 @@ grace_minutes = 10           # after the expected arrival, before asking "have y
 answer_minutes = 5           # after asking, before the alarm
 code_word = "pizza"          # "@ride-watch pizza" raises the alarm at once; "" for none
 
+# Call watch: the parent gives a missed call to the family's Twilio number as an SOS.
+# It rejects the call (so it costs nothing) and tells the Guardian. Needs TWILIO_AUTH_TOKEN in the environment.
+[call]
+credentials = "call-watch/.switch/agents/call-watch.json"
+public_url = "https://example.trycloudflare.com"   # your tunnel; Twilio's webhook is this + /voice
+parent_numbers = ["+91 98765 43210"]               # only calls from these numbers raise the SOS
+
 # Optional: X keys, only if the Clerk should publish through the X API (OAuth 1.0a, Read and Write).
 # Not needed for the default flow: the Clerk sends a link that opens X with the draft filled in.
 # [x]
