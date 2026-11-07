@@ -43,7 +43,9 @@ def handle(config: Config, agent: SwitchAgent | None, text: str, at: datetime) -
         return None
     why = reasons(config.rules, state, event, at)
     alarm = alarm_text(guardian=config.guardian, parent=config.parent_name, event=event, why=why, at=at) if why else None
-    if alarm and agent:
+    if agent is None:
+        return alarm
+    if alarm:
         event_id = agent.post(config.room_id, alarm)
         logger.info("Alarm posted to room %s (event %s)", config.room_id, event_id)
     state.record(event, at, alarmed=bool(why))
@@ -172,7 +174,7 @@ def main() -> int:
         print(f"bankwatch: {exc}", file=sys.stderr)
         return 1
     if alarm is None:
-        print("No alarm: this SMS matches no rule.")
+        print("No alarm: this SMS matches no rule, or was already handled in the last hour (delete bankwatch-state.json to fire it again).")
     else:
         print(("Would post:\n" if args.dry_run else "Posted:\n") + alarm)
     return 0

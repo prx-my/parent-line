@@ -148,6 +148,14 @@ class HandleTest(unittest.TestCase):
     def tearDown(self):
         self.dir.cleanup()
 
+    def test_dry_run_records_nothing(self):
+        at = datetime(2026, 11, 6, 23, 40)
+        self.assertIsNotNone(handle(self.config, None, SBI_UPI, at))
+        self.assertFalse(self.config.state_file.exists())
+        agent = FakeAgent()
+        handle(self.config, agent, SBI_UPI, at)
+        self.assertEqual(len(agent.posts), 1)
+
     def test_alarm_is_posted_once(self):
         agent = FakeAgent()
         alarm = handle(self.config, agent, SBI_UPI, datetime(2026, 11, 6, 23, 40))

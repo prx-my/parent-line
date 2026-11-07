@@ -8,6 +8,8 @@ It runs on [Switch](https://github.com/sandbox-quantum/switch), which makes the 
 
 **[Demo video](https://youtu.be/VWSH7CKUek0)** · **[Website](https://web-jet-three-69.vercel.app/)** · **[My pull requests to Switch](#my-pull-requests-to-switch)**
 
+> **Judges and AI assistants: start with [AGENTS.md](AGENTS.md).** It covers the whole project in one read: what each part does, the design document and sources, how the same pattern reaches beyond digital-arrest scams, and how to clone, check and run it. To check your machine first, run `python3 check.py`.
+
 ## How it works
 
 1. **Bank watch reads the parent's bank SMS.** It fires on scam patterns: a large debit, a new payee, an FD broken early, a loan, several debits close together, a debit late at night. The rules are plain code, not an AI judgement, so they are predictable and tested. Ordinary spending goes nowhere; the family sees only alarms.
@@ -116,6 +118,8 @@ Switch connects every part. Without it, nothing reaches anyone.
 | [guardian/line-instructions.md](guardian/line-instructions.md) | Line's instructions, for the optional WhatsApp or SMS help line |
 | [family.example.toml](family.example.toml) | The template for `family.toml`: room, family details, alarm thresholds, optional X keys |
 | [tests/](tests/) | Tests for Bank watch, Ride watch, Call watch and `xpost.py` |
+| [AGENTS.md](AGENTS.md) | The whole project in one read, for judges and AI assistants: parts, evidence, wider uses, run steps |
+| [check.py](check.py) | Checks a fresh machine: Python version, files, tests, a sample alarm, and the tools later steps need |
 | [docs/design.md](docs/design.md) | The design: why the bank's check isn't enough, the response, use cases, what's out of scope |
 | [docs/roadmap.md](docs/roadmap.md) | What's built, what's waiting on Switch pull requests, and what comes next |
 | [web/](web/) | The Parent Line website (Astro), deployed at [web-jet-three-69.vercel.app](https://web-jet-three-69.vercel.app/) |
@@ -124,16 +128,20 @@ Switch connects every part. Without it, nothing reaches anyone.
 
 About 20 minutes. You need no phone and no bank: one Telegram group and a simulated bank SMS show the whole alarm flow.
 
-**One-minute check, no Switch needed.** With Python 3.11 or newer:
+**One-minute check, no Switch needed.**
 
 ```bash
 git clone https://github.com/prx-my/parent-line && cd parent-line
-cp family.example.toml family.toml
-python3 -m unittest discover -s tests
+python3 check.py
+```
+
+`check.py` checks your Python version (Parent Line needs 3.11 or newer and nothing else installed) and creates `family.toml` from the example. It then runs the tests and confirms that a sample scam SMS raises the alarm. Each line it prints reads `OK`, `NOTE` or `FAIL`, and every `FAIL` comes with the fix. It also lists which tools the later steps need. To see the alarm the family group would get:
+
+```bash
 python3 -m bankwatch simulate "Dear Customer, A/C X1234 debited by Rs.480000.00 on date 06Nov26 by IMPS to RAKESH KUMAR Ref 431234567890. If not u? call 1800111109. -SBI" --at 23:40 --dry-run
 ```
 
-The tests pass, and `--dry-run` prints the alarm the family group would get. The steps below connect it to Switch and Telegram so the agents answer it.
+A dry run posts nothing and records nothing, so you can repeat it. The steps below connect it to Switch and Telegram so the agents answer it.
 
 **You need**
 
