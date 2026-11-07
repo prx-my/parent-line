@@ -23,6 +23,7 @@ RULES = Rules(
 NOON = datetime(2026, 11, 6, 12, 0)
 
 SBI_UPI = "Dear UPI user A/C X1234 debited by 480000.00 on date 06Nov26 trf to RAKESH KUMAR Refno 431234567890. If not u? call 1800111109. -SBI"
+SBI_IMPS = "Dear Customer, A/C X1234 debited by Rs.480000.00 on date 06Nov26 by IMPS to RAKESH KUMAR Ref 431234567890. If not u? call 1800111109. -SBI"
 HDFC_UPI = "Sent Rs.4800.00 From HDFC Bank A/C *1234 To SHARMA KIRANA STORE On 06/11/26 Ref 431234567891 Not You? Call 18002586161/SMS BLOCK UPI to 7308080808"
 ICICI_UPI = "ICICI Bank Acct XX123 debited for Rs 1,20,000.00 on 06-Nov-26; MOHIT VERMA credited. UPI:431234567892. Call 18002662 for dispute."
 RTGS = "INR 4,80,000.00 debited from A/c XX1234 on 06-Nov-26 for RTGS to SAFE CUSTODY ACCOUNT. Avl Bal INR 12,345.00"
@@ -37,6 +38,7 @@ class ParseTest(unittest.TestCase):
     def test_banks(self):
         cases = [
             (SBI_UPI, "debit", Decimal("480000.00"), "RAKESH KUMAR"),
+            (SBI_IMPS, "debit", Decimal("480000.00"), "RAKESH KUMAR"),
             (HDFC_UPI, "debit", Decimal("4800.00"), "SHARMA KIRANA STORE"),
             (ICICI_UPI, "debit", Decimal("120000.00"), "MOHIT VERMA"),
             (RTGS, "debit", Decimal("480000.00"), "SAFE CUSTODY ACCOUNT"),

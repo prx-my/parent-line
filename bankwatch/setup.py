@@ -70,7 +70,7 @@ def run(config: Config, agent: SwitchAgent | None, *, dry_run: bool) -> int:
         return 1
     print(
         "\nReady. Try an alarm:\n"
-        '  python3 -m bankwatch simulate "Dear UPI user A/C X1234 debited by 480000.00 on date 06Nov26 '
-        'trf to RAKESH KUMAR Refno 431234567890. -SBI" --at 23:40'
+        '  python3 -m bankwatch simulate "Dear Customer, A/C X1234 debited by Rs.480000.00 on date 06Nov26 '
+        'by IMPS to RAKESH KUMAR Ref 431234567890. If not u? call 1800111109. -SBI" --at 23:40'
     )
     return 0

@@ -30,7 +30,7 @@ Bank watch posts:
 > • Late at night (23:40)
 >
 > **Bank SMS**
-> _Dear UPI user A/C X1234 debited by 480000.00 on date 06Nov26 trf to RAKESH KUMAR Refno 431234567890. -SBI_
+> _Dear Customer, A/C X1234 debited by Rs.480000.00 on date 06Nov26 by IMPS to RAKESH KUMAR Ref 431234567890. If not u? call 1800111109. -SBI_
 >
 > **Report to the bank by Tue 10 Nov.** If Mom didn't make this payment, reporting by then means Mom shouldn't bear the loss (RBI rules).
 >
@@ -123,7 +123,7 @@ About 20 minutes. You need no phone and no bank: one Telegram group and a simula
 git clone https://github.com/prx-my/parent-line && cd parent-line
 cp family.example.toml family.toml
 python3 -m unittest discover -s tests
-python3 -m bankwatch simulate "Dear UPI user A/C X1234 debited by 480000.00 on date 06Nov26 trf to RAKESH KUMAR Refno 431234567890. -SBI" --at 23:40 --dry-run
+python3 -m bankwatch simulate "Dear Customer, A/C X1234 debited by Rs.480000.00 on date 06Nov26 by IMPS to RAKESH KUMAR Ref 431234567890. If not u? call 1800111109. -SBI" --at 23:40 --dry-run
 ```
 
 The tests pass, and `--dry-run` prints the alarm the family group would get. The steps below connect it to Switch and Telegram so the agents answer it.
@@ -180,7 +180,7 @@ python3 -m bankwatch setup
 ### 4. Fire an alarm
 
 ```bash
-python3 -m bankwatch simulate "Dear UPI user A/C X1234 debited by 480000.00 on date 06Nov26 trf to RAKESH KUMAR Refno 431234567890. -SBI" --at 23:40
+python3 -m bankwatch simulate "Dear Customer, A/C X1234 debited by Rs.480000.00 on date 06Nov26 by IMPS to RAKESH KUMAR Ref 431234567890. If not u? call 1800111109. -SBI" --at 23:40
 ```
 
 The alarm appears in the Telegram group, and the Guardian answers with three jobs. Reply as a family member, for example `@guardian I'll take 1`. The Guardian tracks it, chases the jobs nobody took, and hands the case to the Clerk, which opens the case file and writes the complaint.

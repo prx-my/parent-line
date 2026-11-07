@@ -135,7 +135,7 @@ For the bank, by email to its grievance address. Take the address from the bank'
 ```
 Subject: Unauthorised debit, account ending 1234, ref 431234567890
 
-On 6 Nov 2026 at 23:40, ₹4,80,000 was debited from my account ending 1234 by UPI to RAKESH KUMAR (ref 431234567890). I did not authorise it.
+On 6 Nov 2026 at 23:40, ₹4,80,000 was debited from my account ending 1234 by IMPS to RAKESH KUMAR (ref 431234567890). I did not authorise it.
 I reported it to you on <when, how> and on the cybercrime helpline 1930 (acknowledgement <number>).
 Please block further debits, raise a dispute and reverse the amount, under RBI's circular on limiting customer liability in unauthorised electronic banking transactions (6 July 2017). Please send me the complaint reference number.
 
