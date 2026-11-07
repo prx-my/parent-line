@@ -2,7 +2,8 @@
   "permissions": {
     "allow": [
       "mcp__switch",
-      "Bash(python3 xpost.py check:*)"
+      "Bash(python3 xpost.py check:*)",
+      "Bash(python3 xpost.py intent:*)"
     ],
     "ask": [
       "Bash(python3 xpost.py post:*)"

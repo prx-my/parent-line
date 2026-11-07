@@ -50,6 +50,22 @@ class XPostTest(unittest.TestCase):
         with mock.patch.dict(os.environ, {k: "" for k in xpost.KEYS}), mock.patch.object(xpost, "load_keys", return_value=None):
             self.assertEqual(xpost.main(["xpost.py", "post", "A safe post"]), 3)
 
+    def test_intent_link_carries_the_exact_draft_and_needs_no_keys(self):
+        import io
+        from contextlib import redirect_stdout
+        from urllib.parse import parse_qs, urlsplit
+
+        draft = "@SBI_Support ₹7,55,000 taken in a scam & no reply. Please block XXXX1234?"
+        out = io.StringIO()
+        with redirect_stdout(out):
+            self.assertEqual(xpost.main(["xpost.py", "intent", draft]), 0)
+        url = urlsplit(out.getvalue().strip())
+        self.assertEqual((url.scheme, url.netloc, url.path), ("https", "x.com", "/intent/post"))
+        self.assertEqual(parse_qs(url.query)["text"], [draft])
+
+    def test_intent_refuses_an_unsafe_draft(self):
+        self.assertEqual(xpost.main(["xpost.py", "intent", "call 9876543210"]), 1)
+
 
 if __name__ == "__main__":
     unittest.main()

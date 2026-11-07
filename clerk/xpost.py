@@ -1,15 +1,19 @@
-"""Post a public complaint on X, for the Clerk.
+"""Prepare a public complaint on X, for the Clerk.
 
-    python3 xpost.py check "text"   # is this draft safe and short enough?
-    python3 xpost.py post "text"    # post it (a family member approves this in the room first)
+    python3 xpost.py check "text"    # is this draft safe and short enough?
+    python3 xpost.py intent "text"   # a link that opens X with the draft filled in; a person taps Post
+    python3 xpost.py post "text"     # post it through the X API (a family member approves this in the room first)
 
-The Clerk runs these from its working directory. `.claude/settings.json` there
-makes every `post` wait for a family member to approve it on Switch's approval
-card, even when the agent is in auto mode.
+The Clerk runs these from its working directory. `intent` publishes nothing: the
+link opens X in whichever account the person is signed in to, with the text
+filled in, and they press Post themselves. `.claude/settings.json` there makes
+every `post` wait for a family member to approve it on Switch's approval card,
+even when the agent is in auto mode.
 
-Keys: X_API_KEY, X_API_SECRET, X_ACCESS_TOKEN, X_ACCESS_SECRET in the environment,
-or [x] api_key / api_secret / access_token / access_secret in ../family.toml.
-Without them `post` refuses and says nothing was posted.
+`post` needs keys: X_API_KEY, X_API_SECRET, X_ACCESS_TOKEN, X_ACCESS_SECRET in the
+environment, or [x] api_key / api_secret / access_token / access_secret in
+../family.toml. Without them `post` refuses and says nothing was posted. `intent`
+needs no keys.
 """
 
 from __future__ import annotations
@@ -30,6 +34,7 @@ from pathlib import Path
 from urllib.parse import quote
 
 ENDPOINT = "https://api.x.com/2/tweets"
+INTENT = "https://x.com/intent/post?text="
 LIMIT = 280
 KEYS = ("X_API_KEY", "X_API_SECRET", "X_ACCESS_TOKEN", "X_ACCESS_SECRET")
 
@@ -116,7 +121,7 @@ def post(text: str, keys: dict[str, str]) -> str:
 
 
 def main(argv: list[str]) -> int:
-    if len(argv) != 3 or argv[1] not in ("check", "post"):
+    if len(argv) != 3 or argv[1] not in ("check", "intent", "post"):
         print(__doc__, file=sys.stderr)
         return 2
     command, text = argv[1], argv[2]
@@ -126,6 +131,9 @@ def main(argv: list[str]) -> int:
         return 1
     if command == "check":
         print(f"OK to post ({weighted_length(text)}/{LIMIT} characters)")
+        return 0
+    if command == "intent":
+        print(INTENT + quote(text, safe=""))
         return 0
     keys = load_keys(Path(__file__).resolve().parent.parent / "family.toml")
     if keys is None:
