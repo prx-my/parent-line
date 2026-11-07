@@ -290,7 +290,7 @@ function ways() {
     .set(post, { opacity: 0.25 })
     .fromTo(rings, { scale: 1, opacity: 0.9, transformOrigin: "50% 50%" }, { scale: 3.6, opacity: 0, duration: 1.3, ease: "power1.out", stagger: 0.35, repeat: 1 })
     .to("[data-call-cut]", { drawSVG: "100%", duration: 0.35, ease: "power2.out" })
-    .to(status, { text: { value: "Rejected. It cost Mom nothing." }, duration: 0.5, ease: "none" }, "<")
+    .to(status, { text: { value: "Rejected. Free." }, duration: 0.5, ease: "none" }, "<")
     .to(post, { opacity: 1, duration: 0.5 }, "+=0.3")
     .to({}, { duration: 2 }));
 }

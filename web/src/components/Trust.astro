@@ -1,37 +1,20 @@
 ---
 const columns = [
-  {
-    title: "What it sees", cls: "c-l",
-    items: [
-      ["Bank SMS only", "Bank watch never reads calls, chats or photos. Ordinary spending goes nowhere."],
-      ["Alarms only", "The family sees an alarm, never the parent's everyday transactions."],
-      ["Rides only when started", "Nobody is tracked unless they start a ride. A screenshot is read only if the alarm fires."],
-      ["No secrets kept", "Case files keep the last 4 digits of an account. Never an OTP, PIN, password or card number."],
-    ],
-  },
-  {
-    title: "What it can't do", cls: "c-r",
-    items: [
-      ["Stop a transfer", "Only the bank can. That is why calling the bank is one of the three jobs."],
-      ["See money that never touches the account", "Gift cards, cash or crypto handed over in person raise no bank SMS."],
-      ["Alarm when the phone is off", "If the parent's phone is off, or the bank sends no SMS, nothing reaches Bank watch."],
-      ["Know where a rider is", "Ride apps have no trip API. Ride watch knows only that the rider hasn't said they reached."],
-    ],
-  },
+  { title: "It sees", cls: "c-l", items: ["Bank SMS, nothing else", "Alarms, never everyday spending", "A ride, only when someone starts one", "No OTPs, PINs or passwords, ever"] },
+  { title: "It can't", cls: "c-r", items: ["Stop a transfer. Only the bank can", "See cash or gift-card scams", "Alarm if Mom's phone is off", "Track where a rider is"] },
 ];
 ---
 <section id="trust">
   <div class="wrap">
-    <div class="grid head">
-      <h2 class="h2 c-l6">What the parent agrees to</h2>
-      <p class="lead c-r">They agree at setup. Each service sees one narrow thing, and the limits are said plainly so nobody relies on it for more.</p>
+    <div class="head">
+      <h2 class="h2">What it sees, what it can't</h2>
     </div>
     <div class="grid after-head">
       {columns.map((c) => (
         <div class={c.cls}>
           <h3 class="h3" data-reveal>{c.title}</h3>
           <ul data-stagger>
-            {c.items.map(([b, s]) => <li><b class="h4">{b}</b><span class="soft">{s}</span></li>)}
+            {c.items.map((item) => <li class="h4">{item}</li>)}
           </ul>
         </div>
       ))}
@@ -40,6 +23,6 @@ const columns = [
 </section>
 
 <style>
-  ul { list-style: none; padding: 0; margin: 32px 0 0; border-top: 1px solid var(--rule-strong); }
-  li { display: grid; gap: 6px; padding-block: 22px; border-bottom: 1px solid var(--rule); }
+  ul { list-style: none; padding: 0; margin: 28px 0 0; border-top: 1px solid var(--rule-strong); }
+  li { padding-block: 18px; border-bottom: 1px solid var(--rule); font-weight: 500; }
 </style>

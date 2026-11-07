@@ -1,35 +1,22 @@
 ---
 const lanes = [
-  {
-    title: "The bank's check", sub: "asks the victim", tone: "bad",
-    nodes: ["Bank calls to confirm", "Mom answers, scammer still on video", "\"Yes, it's me\"", "Then an FD broken early, then a loan"],
-  },
-  {
-    title: "Parent Line", sub: "asks the family", tone: "good",
-    nodes: ["Bank SMS", "Bank watch", "Family group", "Riya calls Mom, and the ringing call breaks the scam's hold"],
-  },
+  { title: "The bank's check", tone: "bad", nodes: ["Bank calls Mom", "Scammer coaches her", "\"Yes, it's me\"", "More money leaves"] },
+  { title: "Parent Line", tone: "good", nodes: ["Bank SMS", "Bank watch", "Family group", "Riya calls Mom"] },
 ];
 const stats = [
-  { n: "21,900+", count: 21900, pre: "", suf: "+", text: "digital-arrest complaints from January to August 2026.", src: "MHA to the Supreme Court, via Hindustan Times", href: "https://www.hindustantimes.com/india-news/21900-digital-arrest-complaints-registered-till-sept-mha-to-sc-101792697131006.html" },
-  { n: "₹647 cr+", count: 647, pre: "₹", suf: " cr+", text: "involved in those complaints, in eight months.", src: "Hindustan Times, 23 Oct 2026", href: "https://www.hindustantimes.com/india-news/21900-digital-arrest-complaints-registered-till-sept-mha-to-sc-101792697131006.html" },
-  { n: "Hours, days", text: "is how long victims are kept on video calls, told not to speak to anyone else.", src: "Indian Express, 30 Oct 2026", href: "https://indianexpress.com/article/explained/digital-arrest-scams-supreme-court-rbi-bank-liability-explained-10943089/" },
-];
-const stories = [
-  { amt: "₹60 lakh saved", text: "A daughter in Lucknow stopped the scam on her 86-year-old father.", src: "Amar Ujala", href: "https://www.amarujala.com/lucknow/up-digital-arrest-daughter-saves-86-year-old-father-from-being-duped-2026-04-22" },
-  { amt: "₹41 lakh kept", text: "A daughter in Rajkot stopped more money leaving her parents' account.", src: "India Today", href: "https://www.indiatoday.in/cities/other-cities/story/digital-arrest-scam-rajkot-elderly-couple-duped-rs-55-5-lakh-fake-mumbai-crime-branch-officers-2981908-2026-08-28" },
-  { amt: "A 10-hour call ended", text: "An 8-year-old in Bareilly ended the scam call on his parents.", src: "India Today", href: "https://www.indiatoday.in/india/story/digital-arrest-cyber-scam-bareilly-8-year-old-boy-saves-parents-2894121-2026-04-10" },
+  { n: "21,900+", count: 21900, pre: "", suf: "+", text: "complaints, Jan to Aug 2026", src: "Hindustan Times", href: "https://www.hindustantimes.com/india-news/21900-digital-arrest-complaints-registered-till-sept-mha-to-sc-101792697131006.html" },
+  { n: "₹647 cr+", count: 647, pre: "₹", suf: " cr+", text: "involved in those complaints", src: "Hindustan Times", href: "https://www.hindustantimes.com/india-news/21900-digital-arrest-complaints-registered-till-sept-mha-to-sc-101792697131006.html" },
+  { n: "₹60 lakh", count: 60, pre: "₹", suf: " lakh", text: "saved when a daughter stepped in", src: "Amar Ujala", href: "https://www.amarujala.com/lucknow/up-digital-arrest-daughter-saves-86-year-old-father-from-being-duped-2026-04-22" },
 ];
 ---
 <section id="why">
   <div class="wrap">
-    <div class="grid">
-      <p class="statement c-full words" data-words>Banks call to confirm a large transfer. In a digital arrest, that call reaches the one person the scammer controls, who has been told exactly what to say. Parent Line asks someone else.</p>
-    </div>
+    <p class="statement words" data-words>The bank calls Mom to confirm. The scammer, still on video, tells her what to say. Parent Line asks the family instead.</p>
 
     <div class="lanes after-head">
       {lanes.map((lane) => (
         <div class="lane" data-lane>
-          <div class="lane-head"><h3 class="h4">{lane.title}</h3><span class="meta">{lane.sub}</span></div>
+          <h3 class="h4 lane-head">{lane.title}</h3>
           <div class="track grid">
             <span class="rule" data-lane-rule aria-hidden="true"></span>
             <span class="pulse" data-lane-pulse aria-hidden="true"></span>
@@ -66,26 +53,19 @@ const stories = [
       {stats.map((s) => (
         <div class="stat c-4" data-reveal>
           <div class="num" data-count={s.count} data-prefix={s.pre} data-suffix={s.suf}>{s.n}</div>
-          <p class="soft measure">{s.text}</p>
+          <p class="soft">{s.text}</p>
           <p class="meta"><a href={s.href}>{s.src}</a></p>
         </div>
       ))}
     </div>
-
-    <ul class="grid stories after-block" data-stagger>
-      {stories.map((s) => (
-        <li class="c-4"><b class="h4">{s.amt}</b><span class="small soft">{s.text} <a href={s.href}>{s.src}</a></span></li>
-      ))}
-    </ul>
-    <p class="note" data-reveal>The NHRC recommends "trusted-person authentication" alerts for the elderly (<a href="https://www.pib.gov.in/PressReleasePage.aspx?PRID=2270875&lang=1&reg=3">PIB, 9 Jun 2026</a>). The three cases above are single stories; we found no study of how often family help stops these scams.</p>
   </div>
 </section>
 
 <style>
-  .words { max-width: 22ch; }
+  .words { max-width: 20ch; }
 
   .lanes { display: grid; gap: var(--sp-block); }
-  .lane-head { display: flex; align-items: baseline; gap: 14px; margin-bottom: 28px; }
+  .lane-head { margin-bottom: 28px; }
   .track { position: relative; }
   .rule { position: absolute; left: 0; right: 0; top: 0; height: 1px; background: var(--ink); transform-origin: left; }
   .pulse { position: absolute; left: 0; top: -3px; width: 7px; height: 7px; background: var(--ink); opacity: 0; }
@@ -105,10 +85,8 @@ const stories = [
     [data-rings] { left: -50px; top: -8px; }
   }
 
+  .stat { border-top: 1px solid var(--rule-strong); padding-top: 24px; }
   .stat .num { white-space: nowrap; }
-  .stat p { margin-top: 16px; }
-  .stat .meta { margin-top: 10px; }
-  .stat, .stories li { border-top: 1px solid var(--rule-strong); padding-top: 24px; }
-  .stories { list-style: none; padding: 0; margin-bottom: 0; row-gap: 40px; }
-  .stories li { display: grid; gap: 8px; border-top-color: var(--rule); padding-top: 20px; }
+  .stat p { margin-top: 14px; }
+  .stat .meta { margin-top: 6px; }
 </style>

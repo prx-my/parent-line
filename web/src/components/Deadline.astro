@@ -9,9 +9,9 @@ const days = [
 ---
 <section id="clerk">
   <div class="wrap">
-    <div class="grid head">
-      <h2 class="h2 c-l6">The Clerk keeps the bank's deadline</h2>
-      <p class="lead c-r">Under RBI rules, an unauthorised electronic debit reported within 3 working days costs the customer nothing when someone else committed the fraud. Bank watch works out the date in code. On the last day it reminds the Clerk.</p>
+    <div class="head">
+      <h2 class="h2">3 working days to report</h2>
+      <p class="lead">Report an unauthorised debit in time and Mom bears no loss. Bank watch counts the days.</p>
     </div>
 
     <div class="cal after-head" data-days>
@@ -32,29 +32,13 @@ const days = [
         ))}
       </ol>
     </div>
-    <p class="note">Every day but Sunday counts. A bank holiday only moves the real deadline later, so the date shown is never too late.</p>
+    <p class="note">Sundays don't count. Bank holidays only push the deadline later.</p>
 
-    <div class="grid after-block" data-stagger>
-      <div class="c-l">
-        <h3 class="h3">Public posts, published by a person</h3>
-        <p class="soft measure gap">When a bank, ride app or railway doesn't answer, the Clerk drafts a short post on X tagging the company. After someone in the family says to post it, the Clerk sends a link that opens X with the text filled in. That person reads it and presses Post on their own account. No agent publishes anything.</p>
-      </div>
-      <div class="c-r">
-        <h3 class="h3">What a draft can never carry</h3>
-        <p class="soft measure gap">The Clerk's checker refuses any draft with these in it. Names and addresses can't be caught by a pattern, which is why a person reads every post first.</p>
-        <ul class="refuse">
-          <li>phone numbers</li>
-          <li>email addresses</li>
-          <li>account-style numbers</li>
-          <li>more than 280 characters</li>
-        </ul>
-      </div>
-    </div>
+    <p class="h4 after-block" data-reveal>Public posts on X? The Clerk drafts. A person reads it and presses Post.</p>
   </div>
 </section>
 
 <style>
-  .gap { margin-top: var(--sp-item); }
   .hops { width: 100%; height: 90px; }
   .dashed { stroke-dasharray: 3 5; }
   .days { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); border-top: 1px solid var(--rule-strong); border-bottom: 1px solid var(--rule-strong); }
@@ -71,6 +55,4 @@ const days = [
     .what { font-size: 0.75rem; }
     .hops { height: 56px; }
   }
-  .refuse { list-style: none; padding: 0; margin: 24px 0 0; border-top: 1px solid var(--rule); max-width: 31rem; }
-  .refuse li { padding-block: 10px; border-bottom: 1px solid var(--rule); font: 400 0.875rem/1.4 var(--mono); text-decoration: line-through; text-decoration-color: var(--stamp); text-decoration-thickness: 1.5px; }
 </style>

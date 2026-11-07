@@ -96,8 +96,8 @@ svg { display: block; overflow: visible; }
 }
 
 section { padding-block: var(--sp-section); border-top: 1px solid var(--rule); }
-.head { align-items: end; }
-.head p { max-width: 31rem; }
+.head { display: grid; gap: 20px; max-width: 52rem; }
+.head p { max-width: 34rem; }
 .after-head { margin-top: var(--sp-head); }
 .after-block { margin-top: var(--sp-block); }
 .note { margin-top: var(--sp-item); max-width: 46rem; font-size: var(--fs-small); line-height: 1.5; color: var(--ink-soft); }

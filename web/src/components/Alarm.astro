@@ -4,9 +4,9 @@ const steps = JSON.stringify(alarmSteps.map(({ clock, caption, jobs }) => ({ clo
 ---
 <section class="alarm-sec" id="alarm" data-alarm data-steps={steps}>
   <div class="wrap inner">
-    <div class="grid head">
-      <h2 class="h2 c-l6">One alarm, start to finish</h2>
-      <p class="lead c-r">The Guardian splits the response into three jobs, tracks who has each, chases the ones nobody took, and hands the paperwork to the Clerk.</p>
+    <div class="head">
+      <h2 class="h2">One alarm, start to finish</h2>
+      <p class="lead">Three jobs. Nobody left waiting.</p>
     </div>
 
     <div class="grid stage after-head">
@@ -44,7 +44,7 @@ const steps = JSON.stringify(alarmSteps.map(({ clock, caption, jobs }) => ({ clo
         </ol>
       </div>
     </div>
-    <p class="note after-item">Times from a live test in a Telegram group. The bank SMS was simulated with <code>bankwatch simulate</code>, which runs the same parser and rules as a forwarded SMS. A false alarm costs one reply: "it's fine, she's buying the flat."</p>
+    <p class="note after-item">Times from a live test on Telegram, with a simulated bank SMS.</p>
   </div>
 </section>
 
