@@ -4,7 +4,7 @@ Digital-arrest scammers win by isolation. They keep an older parent on a video c
 
 Parent Line tells the family instead. When the parent's bank SMS looks like a scam, an alarm lands in the family's Telegram group, and the family and two AI agents work it together. Someone calls the parent, someone reports it, someone calls the bank, and the paperwork is done before the bank's reporting deadline.
 
-It runs on [Switch](https://github.com/sandbox-quantum/switch), which makes the family's Telegram group a room where family members, AI agents and a small bank-SMS service all work together.
+It runs on [Switch](https://github.com/sandbox-quantum/switch), which makes the family's Telegram group a room where family members, AI agents and three small services (Bank watch, Ride watch and Call watch) all work together.
 
 ## How it works
 
@@ -115,6 +115,7 @@ Switch connects every part. Without it, nothing reaches anyone.
 | [family.example.toml](family.example.toml) | The template for `family.toml`: room, family details, alarm thresholds, optional X keys |
 | [tests/](tests/) | Tests for Bank watch, Ride watch, Call watch and `xpost.py` |
 | [docs/design.md](docs/design.md) | The design: why the bank's check isn't enough, the response, use cases, what's out of scope |
+| [docs/roadmap.md](docs/roadmap.md) | What's built, what's waiting on Switch pull requests, and what comes next |
 
 ## Run it
 
@@ -249,6 +250,7 @@ A quick cloudflared address changes every time it restarts: update `public_url` 
 | The Clerk says it can't make a link | Check the Clerk's working directory is `clerk/` in this repo, so `xpost.py` is found |
 | `ride-watch` posts "Starting a session to handle this", or a ride alarm before its check-in | Console is running an AI session as ride-watch. Press **Stop** under **Room watcher** on ride-watch's page in Console, end that session, and keep `python3 -m ridewatch serve` running |
 | Ride watch never answers 👀 | Check it is running and was invited (`!invite-agent @ride-watch`). If its log says `Ignoring a message from room …`, set `room_id` in `family.toml` to that room |
+| Ride watch answers "is answering now, keep the alarm open", or never raises the alarm | An earlier ride by the same person is still saved as alarmed. Stop Ride watch, delete `ridewatch-state.json`, and start it again |
 | A missed call posts nothing | Check Call watch's log. `Rejected a call from …` means that number isn't in `parent_numbers`. No log line at all means Twilio isn't reaching it: check the webhook address matches the running tunnel. Twilio's **Monitor** → **Logs** → **Errors** shows a 403 when `public_url` doesn't match the webhook address exactly |
 | `simulate` says `No alarm` the second time | It's a duplicate within the hour. Delete `bankwatch-state.json` |
 | Every agent message in Telegram ends with a list of the tools it called | That's the Telegram connection's tool-call display. An open pull request ([sandbox-quantum/switch#1585](https://github.com/sandbox-quantum/switch/pull/1585)) adds a **Show tool calls** box to **Connect** → **Telegram**; untick it when you connect. An existing connection can't be changed from Switch Console or the web dashboard. Leave it on there: disconnecting removes the family room with its instructions and the Clerk's case files, and you would have to set everything up again |
