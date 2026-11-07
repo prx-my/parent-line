@@ -10,7 +10,7 @@ from __future__ import annotations
 
 import json
 import re
-from dataclasses import asdict, dataclass
+from dataclasses import asdict, dataclass, field
 from datetime import datetime, timedelta
 from pathlib import Path
 
@@ -33,6 +33,7 @@ class Ride:
     asked_at: datetime | None = None
     alarmed_at: datetime | None = None
     code_word: bool = False
+    screenshots: list[str] = field(default_factory=list)  # Switch media ids (mxc://…) of images the rider sent
 
 
 _DATES = ("started", "eta", "asked_at", "alarmed_at")
@@ -69,6 +70,59 @@ _HOURS = re.compile(r"\b(\d{1,2}(?:\.\d)?)\s*(?:h|hr|hrs|hour|hours)\b", re.I)
 _CLOCK = re.compile(r"\b(\d{1,2})[:.](\d{2})\s*([ap])?\.?m?\b", re.I)
 _MAX_RIDE = timedelta(hours=6)
 
+# What a ride app's share message or the rider's own words say about the ride.
+_LINK = re.compile(r"https?://[^\s<>\"]+[^\s<>\".,;:!?)]")
+_PHONE = re.compile(r"(?<![\d+])(?:\+?91[\s-]?|0)?([6-9]\d{4})[\s-]?(\d{5})(?!\d)")
+_PLATE = re.compile(r"\b([A-Z]{2})[\s-]?(\d{1,2})[\s-]?([A-Z]{1,3})[\s-]?(\d{4})\b|\b(\d{2})[\s-]?BH[\s-]?(\d{4})[\s-]?([A-Z]{1,2})\b", re.I)
+_RATING = re.compile(r"(?:★|⭐|\brat(?:ing|ed)\b[\s:]*)\s*([1-5](?:\.\d{1,2})?)\b|\b([1-5]\.\d{1,2})\s*(?:★|⭐|stars?\b)", re.I)
+_DRIVER = re.compile(
+    r"(?i:\b(?:driver|captain)(?:'s)?(?:\s+name)?)\s*(?:is\b|:|-)?\s*([A-Z][a-z]+(?:\s[A-Z][a-z]+){0,2})"
+    r"|\b([A-Z][a-z]+(?:\s[A-Z][a-z]+)?)\s+is\s+(?:driving|your\s+(?:driver|captain))"
+    r"|\b([A-Z][a-z]+(?:\s[A-Z][a-z]+){0,2})\s*[★⭐]\s*[1-5]\.\d"  # a ride app shows the driver's name beside their rating
+)
+_OTP = re.compile(r"\b(OTP|PIN)\b[\s:#-]*\d{3,6}\b", re.I)
+_MAX_SHOWN = 1500  # characters of what the rider sent, in the alarm
+_NOT_NAMES = {"Arriving", "Arrived", "Is", "Will", "Has", "Details", "Number", "On", "Here", "Name", "Rating"}
+_APP = re.compile(r"\b(ola|uber|rapido|namma\s?yatri|blusmart|indrive|meru|quick\s?ride)\b", re.I)
+_APP_NAMES = {"ola": "Ola", "uber": "Uber", "rapido": "Rapido", "nammayatri": "Namma Yatri", "blusmart": "BluSmart", "indrive": "inDrive", "meru": "Meru", "quickride": "Quick Ride"}
+
+
+def _last(pattern: re.Pattern[str], text: str) -> re.Match[str] | None:
+    """The last match: details arrive in order, so a correction wins."""
+    found = list(pattern.finditer(text))
+    return found[-1] if found else None
+
+
+def trip_details(text: str) -> dict[str, str]:
+    """Vehicle, driver, rating, phone, app and trip link, where the text has them. Empty when it has none."""
+    out: dict[str, str] = {}
+    if m := _last(_PLATE, text):
+        out["vehicle"] = (" ".join(m.group(1, 2, 3, 4)) if m[1] else f"{m[5]} BH {m[6]} {m[7]}").upper()
+    names = [n for m in _DRIVER.finditer(text) if (n := m[1] or m[2] or m[3]) and n.split()[0] not in _NOT_NAMES]
+    if names:
+        out["driver"] = names[-1]
+    if m := _last(_RATING, text):
+        out["rating"] = m[1] or m[2]
+    if m := _last(_PHONE, text):
+        out["phone"] = f"{m[1]} {m[2]}"
+    if m := _last(_APP, text):
+        out["app"] = _APP_NAMES[re.sub(r"\s", "", m[1].lower())]
+    if m := _last(_LINK, text):
+        out["link"] = m[0]
+    return out
+
+
+def _summary(d: dict[str, str]) -> str:
+    driver = " · ".join(x for x in (d.get("driver"), d.get("rating") and f"★{d['rating']}", d.get("phone")) if x)
+    return " · ".join(x for x in (d.get("app"), d.get("vehicle"), driver, d.get("link") and "trip link") if x)
+
+
+def _without_details(text: str) -> str:
+    """The text with links, phone numbers, plates and ratings blanked, so none of them reads as a time."""
+    for pattern in (_LINK, _PHONE, _PLATE, _RATING):
+        text = pattern.sub(" ", text)
+    return text
+
 
 def arrival(text: str, now: datetime) -> datetime | None:
     """When the rider expects to arrive: "25 min", "1.5 hr", "23:40", "11:40 pm", or a bare "25"."""
@@ -98,17 +152,37 @@ def alarm_text(s: Settings, ride: Ride, now: datetime) -> str:
         asked = ride.asked_at.strftime("%H:%M") if ride.asked_at else "?"
         why = f"{ride.rider} hasn't said they reached. Ride watch asked at {asked} and got no answer."
     lines = [f"🚨 **Ride alarm: {ride.rider}** · {now:%H:%M}", why, ""]
+    if not ride.details and not ride.screenshots:
+        return "\n".join(lines + ["No ride details were shared.", "", f"{s.guardian} over to you."])
+    lines.append(f"Ride started {ride.started:%H:%M}, expected by {ride.eta:%H:%M}.")
     if ride.details:
-        lines += [f"Ride started {ride.started:%H:%M}, expected by {ride.eta:%H:%M}.", "", f"**What {ride.rider} shared**", f"_{ride.details}_"]
-    else:
-        lines += ["No ride details were shared."]
+        d = trip_details(ride.details)
+        driver = " · ".join(x for x in (d.get("driver"), d.get("rating") and f"★{d['rating']}", d.get("phone")) if x)
+        for label, value in (("Vehicle", d.get("vehicle")), ("Driver", driver), ("App", d.get("app")), ("Trip link", d.get("link"))):
+            if value:
+                lines.append(f"- {label}: {value}")
+        sent = ride.details if len(ride.details) <= _MAX_SHOWN else ride.details[:_MAX_SHOWN] + "…"
+        lines += ["", f"**Everything {ride.rider} sent**", f"_{sent}_"]
+    if ride.screenshots:
+        n = len(ride.screenshots)
+        lines += [
+            "",
+            f"📎 **{ride.rider} sent {n} screenshot{'s' if n > 1 else ''} of the ride.** "
+            "Guardian: download and read them, and put the vehicle, driver and phone in your message:",
+            *ride.screenshots,
+        ]
     return "\n".join(lines + ["", f"{s.guardian} over to you."])
 
 
-def on_message(rides: Rides, s: Settings, sender: str, body: str, now: datetime) -> list[str]:
-    """One message addressed to Ride watch. Returns what to post."""
-    text = _MENTIONS.sub("", body).strip()
+def on_message(rides: Rides, s: Settings, sender: str, body: str, screenshots: list[str], now: datetime) -> list[str]:
+    """One message addressed to Ride watch, with the media ids of any images on it. Returns what to post.
+
+    Ride watch never reads a screenshot: it keeps the id, and the Guardian reads it if the alarm fires.
+    Typed ride OTPs are blanked before anything is kept or posted.
+    """
+    text = _OTP.sub(r"\1 ••••", _MENTIONS.sub("", body).strip())
     ride = rides.by_rider.get(sender)
+    kept = " 📎 Kept your screenshot: if I raise the alarm, the Guardian reads it for the family." if screenshots else ""
 
     if s.code_word and re.search(rf"\b{re.escape(s.code_word)}\b", text, re.I):
         ride = ride or Ride(rider=sender, started=now, eta=now, details="")
@@ -116,11 +190,13 @@ def on_message(rides: Rides, s: Settings, sender: str, body: str, now: datetime)
         rides.by_rider[sender] = ride
         return [alarm_text(s, ride, now)]
 
-    eta = arrival(text, now)
-    # A start message with a pasted share-trip text may say "safe"; a time with no ride yet means start.
+    found = trip_details(text)
+    eta = arrival(_without_details(text), now)
     # A family member can close someone else's ride by naming them: "@ride-watch Riya reached".
     named = [n for n in rides.by_rider if n != sender and re.search(rf"\b{re.escape(n)}\b", text, re.I)]
-    if _DONE.search(text) and (eta is None or ride or named):
+    # A pasted share message may say "stay safe", so a message carrying trip details never closes a ride,
+    # and a time with no ride yet means start.
+    if not found and not screenshots and _DONE.search(text) and (eta is None or ride or named):
         rider = named[0] if named else sender
         closed = rides.by_rider.pop(rider, None)
         if closed is None:
@@ -129,23 +205,43 @@ def on_message(rides: Rides, s: Settings, sender: str, body: str, now: datetime)
             return [f"✅ **{rider} has reached.** {s.guardian} close the ride alarm."]
         return [f"✅ Glad you're in, {rider}. Stopped watching."]
 
+    if ride and (found or screenshots or (eta is None and text)):
+        # More about the ride being watched. A share message's own times ("driver 3 mins away") don't move the check-in;
+        # to change it, send just the time.
+        ride.details = f"{ride.details}\n{text}".strip()
+        ride.screenshots += screenshots
+        got = _summary(trip_details(ride.details))
+        check = ride.eta + timedelta(minutes=s.grace_minutes)
+        return [f"📝 Added to your ride, {sender}." + (f" Got: {got}." if got else "") + kept + f" I'll check on you at {check:%H:%M}."]
     if eta is None:
         if ride:
             return [f"Still watching, {sender}. I'll check on you at {ride.eta + timedelta(minutes=s.grace_minutes):%H:%M}. Send {s.me} reached when you're in."]
+        if screenshots:
+            return [
+                f"{sender}, I need to know when you expect to arrive before I can keep your screenshot. "
+                f"Send it again with the caption {s.me} 25 min, or send {s.me} 25 min first and then the screenshot."
+            ]
         return [
-            f"{sender}, tell me when you expect to arrive and I'll check on you: {s.me} 25 min, or {s.me} 23:40. "
-            "Paste the ride app's share-trip message in the same line so the family has the vehicle and the link."
+            f"{sender}, start with when you expect to arrive and I'll check on you: {s.me} 25 min, or {s.me} 23:40. "
+            "Then send the ride app's share-trip message, a screenshot of the driver's details, or the vehicle number and driver's name, so the family has them."
         ]
     if eta > now + _MAX_RIDE:
         return [f"{sender}, that's more than 6 hours away ({eta:%a %H:%M}). Send the time again, like {s.me} 40 min."]
 
     if ride:
         ride.eta, ride.asked_at = eta, None
+        ride.details = f"{ride.details}\n{text}".strip()
     else:
-        ride = Ride(rider=sender, started=now, eta=eta, details=text)
+        ride = Ride(rider=sender, started=now, eta=eta, details=text, screenshots=list(screenshots))
         rides.by_rider[sender] = ride
     check = eta + timedelta(minutes=s.grace_minutes)
     reply = f"👀 Watching your ride, {sender}. Arriving around {eta:%H:%M}; I'll check on you at {check:%H:%M}. Send {s.me} reached when you're in."
+    if got := _summary(trip_details(ride.details)):
+        reply += f"\nGot: {got}."
+    if kept:
+        reply += "\n" + kept.strip()
+    elif not got:
+        reply += f"\nSend the ride app's share-trip message, a screenshot of the driver's details, or the vehicle number and driver's name, with {s.me} so the family has them."
     if ride.alarmed_at:
         reply += f"\n{s.guardian} {sender} is answering now, new arrival {eta:%H:%M}. Keep the alarm open until they say reached."
     return [reply]

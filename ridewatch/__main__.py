@@ -100,8 +100,10 @@ def serve(config: Config, s: Settings, state_file: Path, agent: SwitchAgent) -> 
             if not is_for_me(event, config.room_id):
                 continue
             p = event["payload"]
+            # Ride watch never reads an image; the Guardian does, if the alarm fires.
+            shots = [str(a["mxc"]) for a in p.get("attachments") or [] if str(a.get("mimetype", "")).startswith("image/")]
             try:
-                step(lambda rides, p=p: on_message(rides, s, p["sender_name"], p["body"], datetime.now()))
+                step(lambda rides, p=p, shots=shots: on_message(rides, s, p["sender_name"], p["body"], shots, datetime.now()))
             except SwitchPostError as exc:
                 # The rider sees no 👀 reply, so they know to send it again.
                 logger.error("Reply to %s not posted: %s", p["sender_name"], exc)

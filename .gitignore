@@ -4,3 +4,4 @@ bankwatch-state.json
 .switch/
 __pycache__/
 ridewatch-state.json
+.DS_Store

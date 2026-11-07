@@ -12,7 +12,7 @@ It runs on [Switch](https://github.com/sandbox-quantum/switch), which makes the 
 2. **The alarm lands in the family group**, addressed to the Guardian agent. The parent never has to spot the scam themselves.
 3. **The family and the Guardian respond together.** Someone calls the parent on a normal call, which breaks the video call's hold. Someone reports on 1930 or cybercrime.gov.in. Someone calls the bank. The Guardian tracks who has which job, chases the jobs nobody took, and closes the alarm when the parent is safe.
 4. **The Clerk handles the paperwork.** The Guardian hands it the case. It keeps a case file as a Switch room document, writes the 1930 complaint and the letter to the bank, and tracks RBI's reporting deadline: 3 working days for an unauthorised debit, with a reminder on the last day. When a bank, ride app or railway doesn't answer, it drafts a public post on X tagging the company. The post goes out only after a family member approves it on Switch's approval card, and never carries names, phone numbers or account numbers.
-5. **Ride watch: a check-in for a ride alone at night.** Before an Ola, Uber, Rapido or auto ride, anyone in the group writes `@ride-watch 25 min` and pastes the app's share-trip message. If they haven't said `reached` 10 minutes after that time, Ride watch asks. With no answer in 5 more minutes, it raises the alarm for the Guardian with the vehicle and trip link they shared, and the family gets three jobs: call them, check the trip link, call 112. A code word (`@ride-watch pizza`) raises it at once, for when they can't talk freely. It runs only when someone starts it. Nobody is tracked otherwise.
+5. **Ride watch: a check-in for a ride alone at night.** Before an Ola, Uber, Rapido or auto ride, anyone in the group writes `@ride-watch 25 min` and pastes the app's share-trip message. If they haven't said `reached` 10 minutes after that time, Ride watch asks. With no answer in 5 more minutes, it raises the alarm for the Guardian with what they shared (vehicle number, driver's name, rating and phone, trip link), and the family gets three jobs: call them, check the trip link, call 112. A code word (`@ride-watch pizza`) raises it at once, for when they can't talk freely. It runs only when someone starts it. Nobody is tracked otherwise.
 6. **Optional: Line, the parent's help line.** An agent in the parent's WhatsApp or SMS chat helps with phone questions one step at a time, in Hindi, English or Hinglish. When a request is really a scam ("install AnyDesk", "tell me the OTP"), it refuses and raises the alarm in the family group. This part needs Switch's WhatsApp or SMS adapter, both still open pull requests; everything above runs on official Switch.
 
 The full design is in [docs/design.md](docs/design.md).
@@ -97,7 +97,7 @@ Switch connects every part. Without it, nothing reaches anyone.
 | **Guardian** | An AI agent (Claude Code, started by Switch Console) | Connected to the family room as its assigned agent. Its behaviour is the room's instructions: [guardian/family-room-instructions.md](guardian/family-room-instructions.md). |
 | **Clerk** | An AI agent (Claude Code), working in [clerk/](clerk/) | In the family room beside the Guardian. The Guardian hands it the case (`@clerk please open a case`), an agent-to-agent handoff through Switch. It keeps the case file as a Switch room document (`create_room_document`). Its public posts run `clerk/xpost.py`, which [clerk/.claude/settings.json](clerk/.claude/settings.json) makes wait for approval, so Switch puts an approval card in the family's chat. |
 | **Bank watch** | A small Python service: [bankwatch/](bankwatch/) | A Switch agent identity with no AI session. When a rule fires, it posts the alarm into the family room through Switch's agent API (`POST /agents/{id}/message`) and @-mentions the Guardian, and Switch delivers that mention. It also reminds the Clerk on the last day to report a debit to the bank. `setup` uses its agent key to set the room's instructions (`update_room`). |
-| **Ride watch** | A small Python service: [ridewatch/](ridewatch/) | Another Switch agent identity with no AI session. It reads the messages addressed to it through Switch's agent event stream (`GET /agents/{id}/events`, a long poll), keeps the clock that the AI agents can't, and posts the check-in and the alarm through the same API as Bank watch. The alarm @-mentions the Guardian. |
+| **Ride watch** | A small Python service: [ridewatch/](ridewatch/) | Another Switch agent identity with no AI session. It reads the messages addressed to it through Switch's agent event stream (`GET /agents/{id}/events`, a long poll), keeps the clock that the AI agents can't, and posts the check-in and the alarm through the same API as Bank watch. It never reads a screenshot: it keeps the image's Switch media id and lists it in the alarm, and the Guardian, which is Claude, downloads it with its Switch `download_attachment` tool and reads it. The alarm @-mentions the Guardian. |
 | **Line** (optional) | The parent's help line: an AI agent in their WhatsApp or SMS chat | Switch's WhatsApp or SMS bridge makes the chat a room. Line helps the parent there, then hops to the family room (`connect_to_room`) to post a help case or raise an alarm. Its behaviour is the room's instructions: [guardian/line-instructions.md](guardian/line-instructions.md). Those adapters are open pull requests to Switch; see Optional extras below. |
 
 ## What's in this repo
@@ -105,7 +105,7 @@ Switch connects every part. Without it, nothing reaches anyone.
 | Path | What it is |
 |---|---|
 | [bankwatch/](bankwatch/) | Bank watch: SMS parser (`parse.py`), rules and alarm text (`rules.py`), the Switch client (`switch.py`), room setup (`setup.py`), and the `simulate`, `serve`, `setup` and `remind` commands (`__main__.py`). Python standard library only |
-| [ridewatch/](ridewatch/) | Ride watch: reading the arrival time, the check-in and the alarm (`rides.py`), and the `serve` loop (`__main__.py`). It reuses Bank watch's config and Switch client |
+| [ridewatch/](ridewatch/) | Ride watch: reading the arrival time and the ride details, the check-in and the alarm (`rides.py`), and the `serve` loop (`__main__.py`). It reuses Bank watch's config and Switch client |
 | [guardian/family-room-instructions.md](guardian/family-room-instructions.md) | The family room's instructions: the Guardian's and the Clerk's parts, their message layouts, and the family details `setup` fills in |
 | [clerk/](clerk/) | The Clerk's working directory: `xpost.py` checks and posts X drafts, and `.claude/settings.json` makes every post wait for approval |
 | [guardian/line-instructions.md](guardian/line-instructions.md) | Line's instructions, for the optional WhatsApp or SMS help line |
@@ -116,6 +116,17 @@ Switch connects every part. Without it, nothing reaches anyone.
 ## Run it
 
 About 20 minutes. You need no phone and no bank: one Telegram group and a simulated bank SMS show the whole alarm flow.
+
+**One-minute check, no Switch needed.** With Python 3.11 or newer:
+
+```bash
+git clone https://github.com/prx-my/parent-line && cd parent-line
+cp family.example.toml family.toml
+python3 -m unittest discover -s tests
+python3 -m bankwatch simulate "Dear UPI user A/C X1234 debited by 480000.00 on date 06Nov26 trf to RAKESH KUMAR Refno 431234567890. -SBI" --at 23:40 --dry-run
+```
+
+The tests pass, and `--dry-run` prints the alarm the family group would get. The steps below connect it to Switch and Telegram so the agents answer it.
 
 **You need**
 
@@ -198,9 +209,9 @@ Add `--dry-run` to see an alarm without posting it. The same SMS counts as a dup
    python3 -m ridewatch serve
    ```
 
-5. In the group, as the rider: `@ride-watch 1 min` followed by a pasted share-trip message, or a line like `Uber, white Dzire KA 20 AB 1234, to home`. Ride watch answers 👀 with the time it will check. Don't reply. A minute later it asks if you reached, and a minute after that it posts the 🚨 Ride alarm and the Guardian hands out the jobs. Send `@ride-watch reached` to close it.
+5. In the group, as the rider: `@ride-watch 1 min`. Ride watch answers 👀 with the time it will check. Then send the ride's details in another message: `@ride-watch` and the app's share-trip message, a line like `@ride-watch Uber, KA 20 AB 1234, driver Ramesh Kumar, 98765 43210, ★4.8`, or a screenshot of the driver's details with the caption `@ride-watch`. It answers 📝 with what it picked out. Don't reply after that. A minute later it asks if you reached, and a minute after that it posts the 🚨 Ride alarm and the Guardian hands out the jobs. Send `@ride-watch reached` to close it.
 
-The time can be `25 min`, `1 hr`, `23:40` or `11:40 pm`. Put it before the pasted message, because a share-trip message can carry its own times ("driver 3 mins away"). `@ride-watch pizza` (the `code_word`) raises the alarm at once. A family member can close someone's ride by name: `@ride-watch Riya reached`.
+The time can be `25 min`, `1 hr`, `23:40` or `11:40 pm`. Details can come in the same message as the time (time first) or in any later one while the ride is watched. Ride watch picks out the vehicle number, the driver's name, rating and phone, the app and the trip link, and keeps everything else as written. Once a ride is watched, a share-trip message's own times ("driver 3 mins away") don't move the check-in; to change it, send just the new time. Screenshots work too: send one with `@ride-watch` as the caption (or `@ride-watch 25 min` to start the ride with it). Ride watch keeps it without reading it, and if the alarm fires the Guardian reads it and posts the vehicle, driver and phone for the family. So no AI reads anything on a ride that ends safely. Typed ride OTPs are blanked, and the Guardian is told never to copy one from a screenshot. `@ride-watch pizza` (the `code_word`) raises the alarm at once. A family member can close someone's ride by name: `@ride-watch Riya reached`.
 
 ### If you get stuck
 
