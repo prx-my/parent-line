@@ -1,0 +1,73 @@
+---
+const days = [
+  { wd: "Fri", d: "6", what: "Debit at 23:40" },
+  { wd: "Sat", d: "7", what: "Day 1" },
+  { wd: "Sun", d: "8", what: "Not counted", skip: true },
+  { wd: "Mon", d: "9", what: "Day 2" },
+  { wd: "Tue", d: "10", what: "Day 3. Report by today", due: true },
+];
+---
+<section id="clerk">
+  <div class="wrap">
+    <div class="head">
+      <h2>The Clerk keeps the bank's deadline</h2>
+      <p>Under RBI rules, an unauthorised electronic debit reported within 3 working days costs the customer nothing when someone else committed the fraud. Bank watch works out the date in code. On the last day it reminds the Clerk.</p>
+    </div>
+
+    <ol class="days" data-days aria-label="Counting 3 working days from a Friday night debit">
+      {days.map((day) => (
+        <li class:list={[{ skip: day.skip, due: day.due }]} data-day>
+          <span class="wd">{day.wd}</span>
+          <span class="d">{day.d}{day.skip && <span class="strike" data-strike aria-hidden="true"></span>}</span>
+          <span class="m">Nov</span>
+          <span class="what">{day.what}</span>
+        </li>
+      ))}
+    </ol>
+    <p class="note">Every day but Sunday counts. A bank holiday only moves the real deadline later, so the date shown is never too late.</p>
+
+    <div class="two" data-stagger>
+      <div>
+        <h3>Public posts, published by a person</h3>
+        <p>When a bank, ride app or railway doesn't answer, the Clerk drafts a short post on X tagging the company. After someone in the family says to post it, the Clerk sends a link that opens X with the text filled in. That person reads it and presses Post on their own account. No agent publishes anything.</p>
+      </div>
+      <div>
+        <h3>What a draft can never carry</h3>
+        <p>The Clerk's checker refuses any draft with these in it. Names and addresses can't be caught by a pattern, which is why a person reads every post first.</p>
+        <ul class="refuse">
+          <li>phone numbers</li>
+          <li>email addresses</li>
+          <li>account-style numbers</li>
+          <li>more than 280 characters</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<style>
+  #clerk { border-top: 1px solid var(--rule); }
+  .days { list-style: none; margin: clamp(56px, 7vw, 96px) 0 0; padding: 0; display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); border-top: 1px solid var(--rule-strong); border-bottom: 1px solid var(--rule-strong); }
+  .days li { display: grid; align-content: start; padding: 22px 20px 26px; border-left: 1px solid var(--rule); min-width: 0; }
+  .days li:first-child { border-left: 0; padding-left: 0; }
+  .wd { font: 400 0.8125rem/1 var(--mono); color: var(--ink-soft); }
+  .d { position: relative; justify-self: start; margin-top: 14px; font-size: clamp(3rem, 7.4vw, 6.6rem); line-height: 0.82; font-stretch: 75%; font-weight: 620; font-variant-numeric: tabular-nums; }
+  .m { font: 400 0.8125rem/1 var(--mono); color: var(--ink-soft); margin-top: 8px; }
+  .what { margin-top: 22px; font-size: 1rem; line-height: 1.3; }
+  .skip .d, .skip .what { color: var(--ink-soft); }
+  .strike { position: absolute; left: -8%; right: -8%; top: 50%; height: 3px; background: var(--ink-soft); transform-origin: left; }
+  .due .d, .due .what { color: var(--stamp); }
+  .due .what { font-weight: 600; }
+  @media (max-width: 640px) {
+    .days li { padding: 16px 8px 18px; }
+    .m { display: none; }
+    .what { font-size: 0.8125rem; margin-top: 14px; }
+  }
+
+  .two { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 48px 80px; margin-top: clamp(72px, 9vw, 120px); }
+  .two h3 { font-size: clamp(1.6rem, 2.6vw, 2.2rem); font-stretch: 80%; line-height: 1.05; font-weight: 620; }
+  .two p { margin-top: 14px; color: var(--ink-soft); max-width: 32rem; }
+  .refuse { list-style: none; padding: 0; margin: 20px 0 0; border-top: 1px solid var(--rule); max-width: 32rem; }
+  .refuse li { padding-block: 10px; border-bottom: 1px solid var(--rule); font: 400 0.875rem/1.4 var(--mono); text-decoration: line-through; text-decoration-color: var(--stamp); text-decoration-thickness: 1.5px; }
+  @media (max-width: 860px) { .two { grid-template-columns: minmax(0, 1fr); } }
+</style>

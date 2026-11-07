@@ -1,0 +1,88 @@
+/* Paper and ink. The page is a letter to a family: pale inland-letter blue, blue-black ink,
+   and one red, used only where the product raises an alarm or a job has nobody on it.
+   No cards, shadows or rounded boxes: structure comes from type, space and hairline rules. */
+:root {
+  --paper: #E2E9EF;
+  --paper-deep: #D4DEE7;
+  --ink: #0F1F38;
+  --ink-soft: #4A5A70;
+  --rule: rgba(15, 31, 56, 0.15);
+  --rule-strong: rgba(15, 31, 56, 0.5);
+  --stamp: #AC2925;
+  --sans: "Anek Latin Variable", "Anek Devanagari Variable", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --deva: "Anek Devanagari Variable", "Anek Latin Variable", "Kohinoor Devanagari", "Nirmala UI", sans-serif;
+  --mono: "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  --ease: cubic-bezier(0.2, 0.7, 0.1, 1);
+  color-scheme: light;
+}
+
+* { box-sizing: border-box; }
+html { background: var(--paper); }
+html.lenis, html.lenis body { height: auto; }
+.lenis.lenis-smooth { scroll-behavior: auto !important; }
+.lenis.lenis-stopped { overflow: hidden; }
+body {
+  margin: 0;
+  background: var(--paper);
+  color: var(--ink);
+  font: 400 1.125rem/1.6 var(--sans);
+  font-stretch: 100%;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  overflow-x: clip;
+}
+::selection { background: var(--ink); color: var(--paper); }
+a { color: inherit; text-decoration: underline; text-decoration-thickness: 1px; text-underline-offset: 0.22em; text-decoration-color: var(--rule-strong); transition: text-decoration-color 0.3s; }
+a:hover { text-decoration-color: currentColor; }
+:focus-visible { outline: 2px solid var(--ink); outline-offset: 3px; }
+h1, h2, h3, p { margin: 0; }
+h1, h2, h3 { font-weight: 600; text-wrap: balance; }
+code, .mono { font-family: var(--mono); font-size: 0.84em; font-weight: 400; }
+.deva { font-family: var(--deva); }
+.alarm { color: var(--stamp); }
+
+.wrap {
+  max-width: 1280px;
+  margin-inline: auto;
+  padding-left: max(20px, env(safe-area-inset-left, 0px));
+  padding-right: max(20px, env(safe-area-inset-right, 0px));
+}
+section { padding-block: clamp(96px, 12vw, 176px); }
+
+.head { display: grid; grid-template-columns: minmax(0, 7fr) minmax(0, 5fr); gap: 28px 64px; align-items: end; }
+.head h2 { font-size: clamp(2.6rem, 6.2vw, 5.4rem); line-height: 0.92; font-stretch: 75%; font-weight: 620; letter-spacing: -0.01em; }
+.head p { color: var(--ink-soft); font-size: 1.1875rem; max-width: 30rem; }
+@media (max-width: 860px) { .head { grid-template-columns: minmax(0, 1fr); } }
+.note { margin-top: 40px; color: var(--ink-soft); font-size: 0.9375rem; max-width: 46rem; }
+
+.btn {
+  display: inline-flex; align-items: center; gap: 14px; padding: 17px 26px;
+  background: var(--ink); color: var(--paper); font: 500 1rem/1 var(--sans);
+  text-decoration: none; transition: background-color 0.3s;
+}
+.btn:hover { background: color-mix(in srgb, var(--ink) 82%, #000); }
+.btn span, .textlink span { display: inline-block; transition: transform 0.4s var(--ease); }
+.btn:hover span { transform: translateY(3px); }
+.textlink { font-weight: 500; text-decoration: none; border-bottom: 1px solid var(--rule-strong); padding-bottom: 4px; transition: border-color 0.3s; }
+.textlink:hover { border-color: var(--ink); }
+.textlink:hover span { transform: translate(2px, -2px); }
+
+/* Word masks created by the motion script */
+.w { display: inline-block; overflow: hidden; vertical-align: top; padding-bottom: 0.1em; margin-bottom: -0.1em; }
+.w > span { display: inline-block; }
+
+/* Transcript: a message as the agents write it, set as a line in a log */
+.t { list-style: none; margin: 0; padding: 0; border-top: 1px solid var(--rule-strong); }
+.t > li { display: grid; grid-template-columns: 4.5rem 8.5rem minmax(0, 1fr); gap: 20px; padding-block: 18px 20px; border-bottom: 1px solid var(--rule); font-size: 1.0625rem; line-height: 1.5; }
+.t.no-time > li { grid-template-columns: 8.5rem minmax(0, 1fr); }
+.t time { font: 500 0.8125rem/1.85 var(--mono); color: var(--ink-soft); font-variant-numeric: tabular-nums; }
+.t .from { font-weight: 600; }
+.t .from small { display: block; font: 400 0.75rem/1.5 var(--mono); color: var(--ink-soft); }
+.t .body { min-width: 0; }
+.t .body p + p, .t .body p + ol, .t .body ol + p { margin-top: 8px; }
+.t .body ol { margin: 0; padding-left: 1.2em; }
+.t .body .mono { display: block; font-size: 0.875em; line-height: 1.75; }
+@media (max-width: 640px) {
+  .t > li, .t.no-time > li { grid-template-columns: minmax(0, 1fr); gap: 2px; }
+  .t time:empty { display: none; }
+}

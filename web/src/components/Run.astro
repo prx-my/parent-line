@@ -1,0 +1,54 @@
+---
+import { repo } from "../content";
+const sms = "Dear Customer, A/C X1234 debited by Rs.480000.00 on date 06Nov26 by IMPS to RAKESH KUMAR Ref 431234567890. If not u? call 1800111109. -SBI";
+const cmd = [
+  `git clone ${repo} && cd parent-line`,
+  "cp family.example.toml family.toml",
+  "python3 -m unittest discover -s tests",
+  `python3 -m bankwatch simulate "${sms}" --at 23:40 --dry-run`,
+].join("\n");
+---
+<section id="run">
+  <div class="wrap">
+    <div class="head">
+      <h2>See the alarm in one minute</h2>
+      <p>Python 3.11 or newer, no other dependencies, no Switch needed for this part. The tests pass, and the last command prints the alarm the family group would get.</p>
+    </div>
+    <div class="term" data-reveal>
+      <div class="bar"><span>Terminal</span><button type="button" data-copy>Copy</button></div>
+      <pre data-cmd>{cmd}</pre>
+    </div>
+    <p class="note">Connecting it to Switch and a Telegram group, so the Guardian and the Clerk answer, takes about 20 minutes. The steps are in the <a href={`${repo}#run-it`}>README</a>.</p>
+  </div>
+</section>
+
+<script>
+  const btn = document.querySelector<HTMLButtonElement>("[data-copy]")!;
+  const pre = document.querySelector<HTMLElement>("[data-cmd]")!;
+  const show = (label: string) => {
+    btn.textContent = label;
+    setTimeout(() => (btn.textContent = "Copy"), 1800);
+  };
+  btn.addEventListener("click", () => {
+    Promise.resolve()
+      .then(() => navigator.clipboard.writeText(pre.innerText))
+      .then(() => show("Copied"))
+      .catch(() => {
+        const range = document.createRange();
+        range.selectNodeContents(pre);
+        const sel = getSelection()!;
+        sel.removeAllRanges();
+        sel.addRange(range);
+        show("Selected");
+      });
+  });
+</script>
+
+<style>
+  #run { border-top: 1px solid var(--rule); }
+  .term { margin-top: clamp(48px, 6vw, 72px); background: var(--ink); color: var(--paper); }
+  .bar { display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 12px 20px; border-bottom: 1px solid color-mix(in srgb, var(--paper) 16%, transparent); font: 400 0.8125rem/1 var(--mono); color: color-mix(in srgb, var(--paper) 60%, transparent); }
+  button { font: 500 0.875rem/1 var(--sans); padding: 6px 0 4px; border: 0; border-bottom: 1px solid color-mix(in srgb, var(--paper) 40%, transparent); background: none; color: var(--paper); cursor: pointer; }
+  button:hover { border-color: var(--paper); }
+  pre { margin: 0; padding: 24px 20px 28px; overflow-x: auto; font: 400 0.875rem/1.85 var(--mono); }
+</style>

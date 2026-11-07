@@ -1,0 +1,77 @@
+---
+import { alarmSteps, jobs } from "../content";
+const steps = JSON.stringify(alarmSteps.map(({ clock, caption, jobs }) => ({ clock, caption, jobs })));
+---
+<section class="alarm-sec" id="alarm" data-alarm data-steps={steps}>
+  <div class="wrap inner">
+    <div class="head">
+      <h2>One alarm, start to finish</h2>
+      <p>The Guardian splits the response into three jobs, tracks who has each, chases the ones nobody took, and hands the paperwork to the Clerk.</p>
+    </div>
+
+    <div class="stage">
+      <div class="side" aria-hidden="true">
+        <div class="clock" data-clock><span>{alarmSteps[0].clock}</span></div>
+        <p class="cap" data-cap>{alarmSteps[0].caption}</p>
+        <ol class="jobs">
+          {jobs.map((job, i) => (
+            <li data-job data-s="idle">
+              <span class="num">{i + 1}</span><span class="job">{job}</span><span class="state">waiting</span>
+            </li>
+          ))}
+        </ol>
+        <p class="case" data-case>Case file: case-2026-11-06-sbi-480000</p>
+      </div>
+
+      <div class="feed" data-feed>
+        <ol class="t" data-feed-list>
+          {alarmSteps.map((s) => (
+            <li data-msg>
+              <time>{s.time}</time>
+              <span class="from">{s.from}<small>{s.kind}</small></span>
+              <div class="body" set:html={s.html} />
+            </li>
+          ))}
+        </ol>
+      </div>
+    </div>
+    <p class="note">Times from a live test in a Telegram group. The bank SMS was simulated with <code>bankwatch simulate</code>, which runs the same parser and rules as a forwarded SMS. A false alarm costs one reply: "it's fine, she's buying the flat."</p>
+  </div>
+</section>
+
+<style>
+  .alarm-sec { border-top: 1px solid var(--rule); }
+  .stage { display: grid; grid-template-columns: minmax(0, 5fr) minmax(0, 7fr); gap: 80px; margin-top: 64px; }
+  .side { display: none; }
+  @media (max-width: 959px) { .stage { grid-template-columns: minmax(0, 1fr); } }
+
+  /* Pinned layout, switched on by the motion script on wide screens */
+  .alarm-sec.is-pinned { height: 100vh; height: 100svh; padding-block: 112px 36px; }
+  .alarm-sec.is-pinned .inner { height: 100%; display: flex; flex-direction: column; }
+  .alarm-sec.is-pinned .head h2 { font-size: clamp(2.4rem, 4.4vw, 4rem); }
+  .alarm-sec.is-pinned .stage { flex: 1; min-height: 0; margin-top: 40px; }
+  .alarm-sec.is-pinned .side { display: flex; flex-direction: column; min-height: 0; }
+  .alarm-sec.is-pinned .feed { position: relative; height: 100%; overflow: hidden; -webkit-mask-image: linear-gradient(transparent, #000 16%); mask-image: linear-gradient(transparent, #000 16%); }
+  .alarm-sec.is-pinned .t { position: absolute; left: 0; right: 0; top: 0; border-top: 0; }
+  .alarm-sec.is-pinned .t > li { grid-template-columns: 8.5rem minmax(0, 1fr); }
+  .alarm-sec.is-pinned .t time { display: none; }
+  .alarm-sec.is-pinned [data-msg] { opacity: 0; transform: translateY(24px); transition: opacity 0.6s var(--ease), transform 0.6s var(--ease); }
+  .alarm-sec.is-pinned [data-msg].on { opacity: 0.38; transform: none; }
+  .alarm-sec.is-pinned [data-msg].now { opacity: 1; }
+  .alarm-sec.is-pinned .note { margin-top: 24px; }
+
+  .clock { font-size: clamp(5rem, 11vw, 10rem); line-height: 0.82; font-stretch: 75%; font-weight: 640; letter-spacing: -0.02em; font-variant-numeric: tabular-nums; color: var(--stamp); transition: color 0.5s; }
+  .clock.closed { color: var(--ink); }
+  .clock span { display: inline-block; }
+  .cap { margin-top: 20px; font-size: 1.25rem; color: var(--ink-soft); min-height: 2em; }
+  .jobs { list-style: none; margin: auto 0 0; padding: 0; border-top: 1px solid var(--rule-strong); }
+  .jobs li { display: grid; grid-template-columns: 2rem minmax(0, 1fr) auto; gap: 12px; align-items: baseline; padding-block: 14px; border-bottom: 1px solid var(--rule); }
+  .num { font: 500 0.8125rem/1 var(--mono); color: var(--ink-soft); }
+  .job { font-size: 1.1875rem; font-weight: 500; text-decoration: line-through; text-decoration-color: transparent; text-decoration-thickness: 1.5px; transition: text-decoration-color 0.4s, color 0.4s; }
+  .state { font: 400 0.8125rem/1 var(--mono); color: var(--ink-soft); transition: color 0.4s; }
+  [data-s="none"] .state { color: var(--stamp); }
+  [data-s="wait"] .state { color: var(--ink); }
+  [data-s="done"] .job { text-decoration-color: var(--ink); color: var(--ink-soft); }
+  .case { margin-top: 16px; font: 400 0.8125rem/1.4 var(--mono); color: var(--ink-soft); opacity: 0; transition: opacity 0.5s; }
+  .case.on { opacity: 1; }
+</style>

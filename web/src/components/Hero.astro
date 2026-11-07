@@ -1,0 +1,70 @@
+---
+import { repo } from "../content";
+---
+<section class="hero" id="top">
+  <div class="wrap">
+    <h1 data-split><span class="soft">Scammers keep a parent alone.</span> Parent Line brings in the family.</h1>
+
+    <div class="grid">
+      <div class="intro" data-hero-intro>
+        <p class="lead">In a digital-arrest scam, a fake officer keeps an older parent on a video call for hours and forbids them to tell anyone. When the parent's bank SMS shows money leaving, Parent Line raises an alarm in the family's group chat, and the family and two AI agents deal with it together.</p>
+        <div class="actions">
+          <a class="btn" href="#alarm">Watch an alarm play out <span aria-hidden="true">↓</span></a>
+          <a class="textlink" href={repo}>Read the code <span aria-hidden="true">↗</span></a>
+        </div>
+      </div>
+
+      <div class="doc" aria-label="A bank SMS becomes an alarm in the family group">
+        <div class="block" data-hero-sms>
+          <div class="meta"><span>SBI, on Mom's phone</span><span>Fri 6 Nov, 23:40</span></div>
+          <p class="sms">Dear Customer, A/C X1234 debited by Rs.480000.00 on date 06Nov26 by IMPS to RAKESH KUMAR Ref 431234567890. If not u? call 1800111109. -SBI</p>
+        </div>
+
+        <div class="via">
+          <span class="via-line" data-hero-line aria-hidden="true"></span>
+          <div class="via-text" data-hero-rules>
+            <p>Forwarded to Bank watch. Three rules fire:</p>
+            <ul>
+              <li>over ₹50,000</li>
+              <li>a payee never paid before</li>
+              <li>late at night</li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="block" data-hero-alarm>
+          <div class="meta"><span>Bank watch, in the family group</span><span>23:40</span></div>
+          <p class="alarm-title">Bank alarm: Mom, 23:40</p>
+          <p class="big">₹4,80,000 left the account to RAKESH KUMAR.</p>
+          <p>Report to the bank by Tue 10 Nov. If Mom didn't make this payment, reporting by then means Mom shouldn't bear the loss (RBI rules).</p>
+          <p class="addr">@guardian over to you.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<style>
+  .hero { padding-block: clamp(140px, 15vw, 200px) clamp(96px, 11vw, 160px); }
+  h1 { font-size: clamp(3.2rem, 8.8vw, 8.2rem); line-height: 0.88; font-stretch: 75%; font-weight: 650; letter-spacing: -0.012em; max-width: 14ch; }
+  .soft { color: var(--ink-soft); }
+  .grid { display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); gap: 48px 24px; margin-top: clamp(56px, 7vw, 104px); }
+  .intro { grid-column: 1 / span 5; }
+  .doc { grid-column: 7 / -1; }
+  .lead { font-size: clamp(1.1875rem, 1.5vw, 1.375rem); line-height: 1.55; color: var(--ink-soft); max-width: 30rem; }
+  .actions { display: flex; flex-wrap: wrap; align-items: center; gap: 20px 28px; margin-top: 40px; }
+  @media (max-width: 960px) { .intro, .doc { grid-column: 1 / -1; } }
+
+  .meta { display: flex; justify-content: space-between; gap: 16px; padding-top: 10px; border-top: 1px solid var(--rule-strong); font: 400 0.75rem/1.4 var(--mono); color: var(--ink-soft); }
+  .sms { margin-top: 16px; font: 400 0.9375rem/1.65 var(--mono); overflow-wrap: anywhere; max-width: 34rem; }
+  .via { display: grid; grid-template-columns: 1px minmax(0, 1fr); gap: 24px; padding-block: 28px; margin-left: 2px; }
+  .via-line { background: var(--ink); transform-origin: top; }
+  .via-text p { font-size: 0.9375rem; color: var(--ink-soft); }
+  .via-text ul { list-style: none; margin: 8px 0 0; padding: 0; display: flex; flex-wrap: wrap; gap: 4px 0; font: 400 0.8125rem/1.6 var(--mono); }
+  .via-text li + li::before { content: "·"; margin: 0 10px; color: var(--ink-soft); }
+  .alarm-title { margin-top: 18px; font-size: clamp(1.9rem, 3vw, 2.5rem); line-height: 1; font-stretch: 75%; font-weight: 650; color: var(--stamp); }
+  .block p + p { margin-top: 10px; }
+  .big { font-size: 1.3125rem; font-weight: 500; }
+  .block p:not(.alarm-title):not(.big):not(.sms) { color: var(--ink-soft); }
+  .addr { font-family: var(--mono); font-size: 0.875rem; }
+</style>

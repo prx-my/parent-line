@@ -1,0 +1,47 @@
+---
+const columns = [
+  {
+    title: "What the parent agrees to", sub: "They agree at setup. Each service sees one narrow thing.",
+    items: [
+      ["Bank SMS only", "Bank watch never reads calls, chats or photos. Ordinary spending goes nowhere."],
+      ["Alarms only", "The family sees an alarm, never the parent's everyday transactions."],
+      ["Rides only when started", "Nobody is tracked unless they start a ride. A screenshot is read only if the alarm fires."],
+      ["No secrets kept", "Case files keep the last 4 digits of an account. Never an OTP, PIN, password or card number."],
+    ],
+  },
+  {
+    title: "What it can't do", sub: "Said plainly, so nobody relies on it for more.",
+    items: [
+      ["Stop a transfer", "Only the bank can. That is why calling the bank is one of the three jobs."],
+      ["See money that never touches the account", "Gift cards, cash or crypto handed over in person raise no bank SMS."],
+      ["Alarm when the phone is off", "If the parent's phone is off, or the bank sends no SMS, nothing reaches Bank watch."],
+      ["Know where a rider is", "Ride apps have no trip API. Ride watch knows only that the rider hasn't said they reached."],
+    ],
+  },
+];
+---
+<section id="trust">
+  <div class="wrap cols">
+    {columns.map((c) => (
+      <div>
+        <h2 data-reveal>{c.title}</h2>
+        <p class="sub" data-reveal>{c.sub}</p>
+        <ul data-stagger>
+          {c.items.map(([b, s]) => <li><b>{b}</b><span>{s}</span></li>)}
+        </ul>
+      </div>
+    ))}
+  </div>
+</section>
+
+<style>
+  #trust { border-top: 1px solid var(--rule); }
+  .cols { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 64px 80px; }
+  h2 { font-size: clamp(2.2rem, 4.4vw, 3.8rem); line-height: 0.95; font-stretch: 75%; font-weight: 620; }
+  .sub { margin-top: 16px; color: var(--ink-soft); max-width: 28rem; }
+  ul { list-style: none; padding: 0; margin: 40px 0 0; border-top: 1px solid var(--rule-strong); }
+  li { display: grid; gap: 6px; padding-block: 22px; border-bottom: 1px solid var(--rule); }
+  b { font-size: 1.375rem; font-weight: 600; font-stretch: 85%; line-height: 1.15; }
+  li span { color: var(--ink-soft); }
+  @media (max-width: 860px) { .cols { grid-template-columns: minmax(0, 1fr); } }
+</style>
