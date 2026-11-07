@@ -11,11 +11,11 @@ import { posts } from "../../posts";
     <ol class="list after-head">
       {posts.map((p) => (
         <li>
-          <a href={`/blog/${p.slug}/`}>
+          <a href={p.url ?? `/blog/${p.slug}/`}>
             <p class="meta"><time datetime={p.iso}>{p.published}</time> · {p.minutes} min read</p>
             <h2 class="h3">{p.title}</h2>
             <p class="soft measure">{p.description}</p>
-            <span class="more">Read <span aria-hidden="true">→</span></span>
+            <span class="more">{p.url ? "Read on DEV" : "Read"} <span aria-hidden="true">{p.url ? "↗" : "→"}</span></span>
           </a>
         </li>
       ))}
