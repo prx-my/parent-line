@@ -53,9 +53,9 @@ const steps = JSON.stringify(alarmSteps.map(({ clock, caption, jobs }) => ({ clo
   .after-item { margin-top: 32px; }
 
   /* Pinned layout, switched on by the motion script on wide screens */
-  .alarm-sec.is-pinned { height: 100vh; height: 100svh; padding-block: calc(64px + 40px) 32px; }
+  .alarm-sec.is-pinned { height: 100vh; height: 100svh; padding-block: calc(64px + 3vh) 3vh; }
   .alarm-sec.is-pinned .inner { height: 100%; display: flex; flex-direction: column; }
-  .alarm-sec.is-pinned .stage { flex: 1; min-height: 0; margin-top: 48px; }
+  .alarm-sec.is-pinned .stage { flex: 1; min-height: 0; margin-top: 4vh; }
   .alarm-sec.is-pinned .side { display: flex; flex-direction: column; min-height: 0; }
   .alarm-sec.is-pinned .feed { position: relative; height: 100%; overflow: hidden; -webkit-mask-image: linear-gradient(transparent, #000 16%); mask-image: linear-gradient(transparent, #000 16%); }
   .alarm-sec.is-pinned .t { position: absolute; left: 0; right: 0; top: 0; border-top: 0; }
@@ -64,7 +64,18 @@ const steps = JSON.stringify(alarmSteps.map(({ clock, caption, jobs }) => ({ clo
   .alarm-sec.is-pinned [data-msg] { opacity: 0; transform: translateY(24px); transition: opacity 0.6s var(--ease), transform 0.6s var(--ease); }
   .alarm-sec.is-pinned [data-msg].on { opacity: 0.36; transform: none; }
   .alarm-sec.is-pinned [data-msg].now { opacity: 1; }
-  .alarm-sec.is-pinned .after-item { margin-top: 20px; }
+  .alarm-sec.is-pinned .after-item { margin-top: 2vh; }
+
+  /* While pinned the section is exactly one screen tall, so the left column sizes from the screen's height */
+  .alarm-sec.is-pinned .head { gap: 1vh; }
+  .alarm-sec.is-pinned .head h2 { font-size: clamp(2rem, 6vh, 4rem); }
+  .alarm-sec.is-pinned .head p { font-size: clamp(1rem, 2.2vh, 1.375rem); }
+  .alarm-sec.is-pinned .clock { font-size: clamp(3rem, 13vh, 9.5rem); }
+  .alarm-sec.is-pinned .cap { margin-top: 1.5vh; font-size: clamp(1rem, 2.2vh, 1.375rem); }
+  .alarm-sec.is-pinned .rail { margin-top: 2.5vh; }
+  .alarm-sec.is-pinned .jobs { margin-top: auto; }
+  .alarm-sec.is-pinned .jobs li { padding-block: 1.2vh; }
+  .alarm-sec.is-pinned .case { margin-top: 1.2vh; }
 
   .clock { font-size: clamp(5rem, 10.5vw, 9.5rem); color: var(--stamp); transition: color 0.5s; }
   .clock.closed { color: var(--ink); }

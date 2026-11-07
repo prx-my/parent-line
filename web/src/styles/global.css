@@ -28,9 +28,9 @@
   --fs-meta: 0.75rem;
 
   --gap: 24px;
-  --sp-section: clamp(120px, 14vw, 208px);
-  --sp-head: clamp(64px, 8vw, 112px);
-  --sp-block: clamp(56px, 7vw, 96px);
+  --sp-section: clamp(72px, 8vw, 120px);
+  --sp-head: clamp(40px, 5vw, 72px);
+  --sp-block: clamp(40px, 5vw, 72px);
   --sp-item: 20px;
 
   --ease: cubic-bezier(0.2, 0.7, 0.1, 1);

@@ -192,7 +192,7 @@ function alarm(mm: gsap.MatchMedia) {
     gsap.to(list, { y, duration: 0.8, ease: "expo.out", overwrite: true });
   };
 
-  mm.add("(min-width: 960px) and (min-height: 640px)", () => {
+  mm.add("(min-width: 960px) and (min-height: 700px)", () => {
     sec.classList.add("is-pinned");
     current = -1;
     render(0);
@@ -210,7 +210,7 @@ function alarm(mm: gsap.MatchMedia) {
       msgs.forEach((m) => m.classList.remove("on", "now"));
     };
   });
-  mm.add("(max-width: 959px), (max-height: 639px)", () => {
+  mm.add("(max-width: 959px), (max-height: 699px)", () => {
     msgs.forEach((m) => gsap.from(m, { y: 28, opacity: 0, duration: 1, ease: "expo.out", scrollTrigger: { trigger: m, start: "top 90%" } }));
   });
 }
