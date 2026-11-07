@@ -1,0 +1,53 @@
+---
+import "@fontsource-variable/anek-latin/standard.css";
+import "@fontsource-variable/anek-devanagari/standard.css";
+import "@fontsource/ibm-plex-mono/400.css";
+import "../styles/global.css";
+import Footer from "../components/Footer.astro";
+
+interface Props { title: string; description: string; updated: string }
+const { title, description, updated } = Astro.props;
+---
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <title>{title} · Parent Line</title>
+    <meta name="description" content={description} />
+    <meta property="og:title" content={`${title} · Parent Line`} />
+    <meta property="og:description" content={description} />
+    <meta name="theme-color" content="#E2E9EF" />
+  </head>
+  <body>
+    <header class="bar wrap">
+      <a class="mark" href="/">Parent Line</a>
+      <nav aria-label="Pages">
+        <a href="/blog/">Blog</a>
+        <a href="/about/">About</a>
+        <a href="/privacy/">Privacy</a>
+      </nav>
+    </header>
+    <main class="wrap">
+      <article class="doc">
+        <p class="meta">Updated {updated}</p>
+        <h1 class="h2">{title}</h1>
+        <slot />
+      </article>
+    </main>
+    <Footer />
+  </body>
+</html>
+
+<style>
+  .bar { display: flex; justify-content: space-between; align-items: center; gap: 16px; height: 64px; border-bottom: 1px solid var(--rule); }
+  .mark { font-weight: 650; font-size: 1.3125rem; font-stretch: 80%; text-decoration: none; }
+  nav { display: flex; gap: 24px; font-size: 0.9375rem; }
+  .doc { max-width: 44rem; padding-block: var(--sp-section); }
+  .doc h1 { margin: 12px 0 32px; }
+  .doc :global(h2) { font-size: var(--fs-h4); line-height: 1.2; font-weight: 600; margin: 48px 0 12px; }
+  .doc :global(p), .doc :global(ul) { margin: 0 0 14px; }
+  .doc :global(ul) { padding-left: 1.2em; }
+  .doc :global(li + li) { margin-top: 6px; }
+  .doc :global(.lead) { margin-bottom: 24px; }
+</style>

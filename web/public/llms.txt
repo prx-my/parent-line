@@ -1,0 +1,38 @@
+# Parent Line
+
+> A family safety net for older parents in India, built on Switch (https://github.com/sandbox-quantum/switch). When a parent's bank SMS looks like a digital-arrest scam, an alarm lands in the family's Telegram group. There, two AI agents (Claude Code) and the family deal with it together: someone calls the parent, someone reports it on 1930, someone calls the bank. The paperwork gets done before RBI's reporting deadline.
+
+Parent Line was built for the Flip the Switch hackathon (WeMakeDevs, November 2026). It is open source, and each family runs it on its own computer.
+
+Key facts:
+
+- Problem: digital-arrest scammers isolate an older person on a video call for hours and walk them through sending their savings. The bank's confirmation call fails because it reaches the person the scammer controls. The Ministry of Home Affairs told the Supreme Court of 21,900+ complaints involving ₹647 crore+ from January to August 2026.
+- Approach: tell the family instead. A plain-code service (Bank watch) reads the parent's bank SMS and fires on scam patterns: a large debit, a new payee, an FD broken early, a loan, several debits in a burst, a debit late at night. AI agents never decide whether an alarm fires; they coordinate the people and write the documents.
+- Agents: the Guardian answers each alarm with numbered jobs, tracks who took each one and chases the jobs nobody took. The Clerk keeps the case file as a Switch room document, writes the 1930 complaint and the bank letter, and tracks RBI's 3-working-day deadline. It can draft a post on X, but a family member reviews it and presses Post; no agent publishes anything.
+- Other watchers: Ride watch is a check-in timer for a ride alone at night, with a code word that raises the alarm at once. Call watch turns the parent's missed call into an SOS in the group.
+- Beyond scams: the pattern is general. A watcher notices trouble, posts in a shared room, an agent splits the response into jobs, another agent does the paperwork, and people act. Digital arrest is the first example.
+- Requirements: Python 3.11+, standard library only. `python3 check.py` checks a fresh machine.
+
+## Docs
+
+- [AGENTS.md](https://github.com/prx-my/parent-line/blob/main/AGENTS.md): the whole project in one read, covering its parts, evidence, wider uses and run steps
+- [README](https://github.com/prx-my/parent-line/blob/main/README.md): full setup, what the family sees, how Switch is used, troubleshooting, limits
+- [Design document](https://github.com/prx-my/parent-line/blob/main/docs/design.md): why the bank's check fails, who does what, how an alarm starts, what is out of scope
+- [Roadmap](https://github.com/prx-my/parent-line/blob/main/docs/roadmap.md): what's built, what's waiting on Switch pull requests, what's next
+
+## Pages
+
+- [Home](https://web-jet-three-69.vercel.app/): the alarm, the room, how to try it
+- [About](https://web-jet-three-69.vercel.app/about/): why it exists, who built it, the sources
+- [Privacy](https://web-jet-three-69.vercel.app/privacy/): what the website and the software collect, and where data goes
+
+## Sources
+
+- [Hindustan Times, 23 Oct 2026](https://www.hindustantimes.com/india-news/21900-digital-arrest-complaints-registered-till-sept-mha-to-sc-101792697131006.html): MHA figures given to the Supreme Court
+- [Indian Express, 30 Oct 2026](https://indianexpress.com/article/explained/digital-arrest-scams-supreme-court-rbi-bank-liability-explained-10943089/): how victims are isolated, and bank liability
+- [PIB (NHRC), 9 Jun 2026](https://www.pib.gov.in/PressReleasePage.aspx?PRID=2270875&lang=1&reg=3): cybercrime mostly affects elderly people; recommends trusted-person alerts
+
+## Optional
+
+- [Demo video](https://youtu.be/VWSH7CKUek0)
+- [Switch](https://github.com/sandbox-quantum/switch): the agent platform Parent Line runs on

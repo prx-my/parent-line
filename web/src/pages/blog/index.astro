@@ -1,0 +1,35 @@
+---
+import Site from "../../layouts/Site.astro";
+import { posts } from "../../posts";
+---
+<Site title="Blog" description="Notes from building Parent Line: why it exists, how it works on Switch, and what's next." type="website">
+  <section class="blog">
+    <div class="head">
+      <h1 class="h2">Blog</h1>
+      <p class="lead">Notes from building Parent Line.</p>
+    </div>
+    <ol class="list after-head">
+      {posts.map((p) => (
+        <li>
+          <a href={`/blog/${p.slug}/`}>
+            <p class="meta"><time datetime={p.iso}>{p.published}</time> · {p.minutes} min read</p>
+            <h2 class="h3">{p.title}</h2>
+            <p class="soft measure">{p.description}</p>
+            <span class="more">Read <span aria-hidden="true">→</span></span>
+          </a>
+        </li>
+      ))}
+    </ol>
+  </section>
+</Site>
+
+<style>
+  .blog { border-top: 0; max-width: 52rem; }
+  .list { list-style: none; margin-bottom: 0; padding: 0; border-top: 1px solid var(--rule-strong); }
+  .list li { border-bottom: 1px solid var(--rule); }
+  .list a { display: grid; gap: 10px; padding-block: 32px; text-decoration: none; }
+  .list h2 { transition: color 0.3s; }
+  .more { font-weight: 500; margin-top: 6px; }
+  .more span { display: inline-block; transition: transform 0.4s var(--ease); }
+  .list a:hover .more span { transform: translateX(4px); }
+</style>

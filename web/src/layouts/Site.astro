@@ -1,0 +1,45 @@
+---
+import "@fontsource-variable/anek-latin/standard.css";
+import "@fontsource-variable/anek-devanagari/standard.css";
+import "@fontsource/ibm-plex-mono/400.css";
+import "../styles/global.css";
+import Footer from "../components/Footer.astro";
+
+interface Props { title: string; description: string; type: "website" | "article" }
+const { title, description, type } = Astro.props;
+---
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <title>{title} · Parent Line</title>
+    <meta name="description" content={description} />
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
+    <meta property="og:type" content={type} />
+    <meta name="theme-color" content="#E2E9EF" />
+  </head>
+  <body>
+    <header class="bar wrap">
+      <a class="mark" href="/">Parent Line</a>
+      <nav aria-label="Pages">
+        <a href="/blog/">Blog</a>
+        <a href="/about/">About</a>
+        <a href="/privacy/">Privacy</a>
+      </nav>
+    </header>
+    <main class="wrap">
+      <slot />
+    </main>
+    <Footer />
+  </body>
+</html>
+
+<style>
+  .bar { display: flex; justify-content: space-between; align-items: center; gap: 16px; height: 64px; border-bottom: 1px solid var(--rule); }
+  .mark { font-weight: 650; font-size: 1.3125rem; font-stretch: 80%; text-decoration: none; }
+  nav { display: flex; gap: 24px; font-size: 0.9375rem; }
+  nav a { text-decoration: none; color: var(--ink-soft); }
+  nav a:hover { color: var(--ink); }
+</style>

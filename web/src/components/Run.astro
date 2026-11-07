@@ -1,54 +1,99 @@
 ---
 import { repo } from "../content";
 const sms = "Dear Customer, A/C X1234 debited by Rs.480000.00 on date 06Nov26 by IMPS to RAKESH KUMAR Ref 431234567890. If not u? call 1800111109. -SBI";
-const cmd = [
+const lines = [
   `git clone ${repo} && cd parent-line`,
   "cp family.example.toml family.toml",
   "python3 -m unittest discover -s tests",
   `python3 -m bankwatch simulate "${sms}" --at 23:40 --dry-run`,
-].join("\n");
+];
 ---
-<section id="run">
-  <div class="wrap">
-    <div class="head">
-      <h2 class="h2">Try it in one minute</h2>
-      <p class="lead">Python 3.11. No Switch needed.</p>
-    </div>
-    <div class="term after-head" data-reveal>
-      <div class="bar"><span>Terminal</span><button type="button" data-copy>Copy</button></div>
-      <pre data-cmd>{cmd}</pre>
-    </div>
-    <p class="note">Full setup with Switch and Telegram: about 20 minutes, in the <a href={`${repo}#run-it`}>README</a>.</p>
+<div class="try grid" id="run">
+  <div class="c-l text">
+    <h2 class="h3">Try it in one minute</h2>
+    <p class="meta">Python 3.11 · no Switch needed</p>
+    <p class="soft">The last command prints the alarm the family group would get.</p>
+    <p class="small soft">Full setup with Switch and Telegram takes about 20 minutes: <a href={`${repo}#run-it`}>README</a>.</p>
   </div>
-</section>
+
+  <div class="c-r term">
+    <div class="bar">
+      <span>Terminal</span>
+      <button type="button" class="all" data-copy={lines.join("\n")}>
+        <svg class="i-copy" viewBox="0 0 16 16" aria-hidden="true"><rect x="5" y="5" width="9" height="9" /><path d="M11 5V2H2v9h3" /></svg>
+        <span data-label>Copy all</span>
+      </button>
+    </div>
+    <ol class="cmds">
+      {lines.map((l, i) => (
+        <li>
+          <code>{l}</code>
+          <button type="button" class="one" data-copy={l} aria-label={`Copy command ${i + 1}`} title="Copy">
+            <svg class="i-copy" viewBox="0 0 16 16" aria-hidden="true"><rect x="5" y="5" width="9" height="9" /><path d="M11 5V2H2v9h3" /></svg>
+            <svg class="i-done" viewBox="0 0 16 16" aria-hidden="true"><path d="M3 8.5l3.2 3L13 4.5" /></svg>
+          </button>
+        </li>
+      ))}
+    </ol>
+  </div>
+</div>
 
 <script>
-  const btn = document.querySelector<HTMLButtonElement>("[data-copy]")!;
-  const pre = document.querySelector<HTMLElement>("[data-cmd]")!;
-  const show = (label: string) => {
-    btn.textContent = label;
-    setTimeout(() => (btn.textContent = "Copy"), 1800);
-  };
-  btn.addEventListener("click", () => {
-    Promise.resolve()
-      .then(() => navigator.clipboard.writeText(pre.innerText))
-      .then(() => show("Copied"))
-      .catch(() => {
-        const range = document.createRange();
-        range.selectNodeContents(pre);
-        const sel = getSelection()!;
-        sel.removeAllRanges();
-        sel.addRange(range);
-        show("Selected");
-      });
+  document.querySelectorAll<HTMLButtonElement>(".try [data-copy]").forEach((btn) => {
+    const label = btn.querySelector<HTMLElement>("[data-label]");
+    const idle = label?.textContent ?? "";
+    const show = (text: string) => {
+      if (label) label.textContent = text;
+      btn.classList.add("done");
+      setTimeout(() => { if (label) label.textContent = idle; btn.classList.remove("done"); }, 1600);
+    };
+    btn.addEventListener("click", () => {
+      Promise.resolve()
+        .then(() => navigator.clipboard.writeText(btn.dataset.copy!))
+        .then(() => show("Copied"))
+        .catch(() => {
+          // Clipboard refused: select the command so the visitor can copy it with the keyboard.
+          const target = btn.closest("li")?.querySelector("code") ?? btn.closest(".term")!.querySelector(".cmds")!;
+          const range = document.createRange();
+          range.selectNodeContents(target);
+          const sel = getSelection()!;
+          sel.removeAllRanges();
+          sel.addRange(range);
+          show("Selected");
+        });
+    });
   });
 </script>
 
 <style>
-  .term { background: var(--ink); color: var(--paper); }
-  .bar { display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 12px 20px; border-bottom: 1px solid color-mix(in srgb, var(--paper) 16%, transparent); font: 400 var(--fs-meta)/1 var(--mono); color: color-mix(in srgb, var(--paper) 60%, transparent); }
-  button { font: 500 var(--fs-small)/1 var(--sans); padding: 6px 0 4px; border: 0; border-bottom: 1px solid color-mix(in srgb, var(--paper) 40%, transparent); background: none; color: var(--paper); cursor: pointer; }
+  .try { margin-top: var(--sp-block); padding-top: var(--sp-block); border-top: 1px solid var(--rule-strong); align-items: start; scroll-margin-top: 80px; }
+  .text { display: grid; gap: 12px; align-content: start; }
+
+  .term { background: var(--ink); color: var(--paper); min-width: 0; }
+  .bar { display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 8px 8px 8px 16px; border-bottom: 1px solid color-mix(in srgb, var(--paper) 16%, transparent); font: 400 var(--fs-meta)/1 var(--mono); color: color-mix(in srgb, var(--paper) 60%, transparent); }
+
+  button {
+    display: inline-flex; align-items: center; justify-content: center; gap: 6px; cursor: pointer;
+    font: 500 0.8125rem/1 var(--sans); color: var(--paper); background: transparent;
+    border: 1px solid color-mix(in srgb, var(--paper) 28%, transparent);
+    transition: background-color 0.2s, border-color 0.2s, color 0.2s;
+  }
   button:hover { border-color: var(--paper); }
-  pre { margin: 0; padding: 24px 20px 28px; overflow-x: auto; font: 400 0.875rem/1.85 var(--mono); }
-  .note { margin-top: 32px; }
+  button:focus-visible { outline: 2px solid var(--paper); outline-offset: 2px; }
+  button svg { width: 14px; height: 14px; fill: none; stroke: currentColor; stroke-width: 1.4; }
+  .all { padding: 7px 12px; background: var(--paper); color: var(--ink); border-color: var(--paper); }
+  .all:hover { background: color-mix(in srgb, var(--paper) 85%, var(--ink)); }
+  .all.done { background: var(--paper); }
+  .one { width: 30px; height: 30px; padding: 0; }
+  .one .i-done { display: none; stroke-width: 2; }
+  .one.done { background: var(--paper); color: var(--ink); border-color: var(--paper); }
+  .one.done .i-copy { display: none; }
+  .one.done .i-done { display: block; }
+
+  .cmds { list-style: none; margin: 0; padding: 8px 0; }
+  .cmds li { display: grid; grid-template-columns: minmax(0, 1fr) 30px; align-items: start; gap: 16px; padding: 7px 8px 7px 16px; transition: background-color 0.2s; }
+  .cmds li:hover { background: color-mix(in srgb, var(--paper) 7%, transparent); }
+  /* A prompt before each command; a long command wraps under itself, not under the prompt */
+  code { display: block; padding: 4px 0 4px 1.5em; text-indent: -1.5em; font: 400 0.8125rem/1.65 var(--mono); white-space: pre-wrap; overflow-wrap: anywhere; }
+  code::before { content: "$ "; color: color-mix(in srgb, var(--paper) 50%, transparent); }
 </style>

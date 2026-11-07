@@ -1,0 +1,39 @@
+---
+import Site from "./Site.astro";
+import type { Post } from "../posts";
+
+interface Props { post: Post }
+const { post } = Astro.props;
+---
+<Site title={post.title} description={post.description} type="article">
+  <article class="post">
+    <a class="back meta" href="/blog/">← All posts</a>
+    <h1 class="h2 title">{post.title}</h1>
+    <p class="lead dek">{post.description}</p>
+    <p class="meta byline"><time datetime={post.iso}>{post.published}</time> · {post.minutes} min read · Prakhar Gupta</p>
+    <div class="prose"><slot /></div>
+  </article>
+</Site>
+
+<style>
+  .post { max-width: 42rem; margin-inline: auto; padding-block: var(--sp-section); }
+  .back { display: inline-block; text-decoration: none; margin-bottom: 32px; }
+  .back:hover { color: var(--ink); }
+  .title { max-width: 18ch; }
+  .dek { margin-top: 20px; }
+  .byline { margin-top: 24px; padding-top: 12px; border-top: 1px solid var(--rule-strong); }
+
+  /* Body text written in Markdown */
+  .prose { margin-top: var(--sp-block); line-height: 1.7; }
+  .prose > :global(* + *) { margin-top: 20px; }
+  .prose :global(h2) { font-size: var(--fs-h3); line-height: 1; font-stretch: 75%; font-weight: 630; margin-top: var(--sp-block); padding-top: 24px; border-top: 1px solid var(--rule); }
+  .prose > :global(h2 + *) { margin-top: 18px; }
+  .prose :global(ul), .prose :global(ol) { padding-left: 1.3em; }
+  .prose :global(li + li) { margin-top: 10px; }
+  .prose :global(li::marker) { color: var(--ink-soft); }
+  .prose :global(:not(pre) > code) { font-size: 0.84em; padding: 1px 5px; background: color-mix(in srgb, var(--ink) 7%, transparent); }
+  .prose :global(pre) { margin-top: 24px; padding: 18px 20px; background: var(--ink); color: var(--paper); overflow-x: auto; font: 400 0.8125rem/1.75 var(--mono); }
+  .prose :global(pre code) { font: inherit; background: none; padding: 0; }
+  /* The closing line of a post is set off as a sign-off */
+  .prose > :global(p:last-child) { margin-top: var(--sp-block); padding-top: 24px; border-top: 1px solid var(--rule-strong); color: var(--ink-soft); }
+</style>

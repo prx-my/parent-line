@@ -40,7 +40,7 @@ function start() {
   why(mm);
   reveals();
   alarm(mm);
-  room(mm);
+  room();
   ways();
   deadline();
 
@@ -71,7 +71,7 @@ function hero() {
 
   const intro = gsap.timeline({ defaults: { ease: "expo.out" } })
     .from(splitWords($(".hero h1")), { yPercent: 115, duration: 1.3, stagger: 0.045 })
-    .from("[data-hero-intro] > *", { y: 24, opacity: 0, duration: 1, stagger: 0.1 }, "-=1")
+    .from("[data-hero-intro] > :not(h1), #run > *", { y: 24, opacity: 0, duration: 1, stagger: 0.1 }, "-=1")
     .from("[data-hero-sms] .meta-row", { opacity: 0, y: 12, duration: 0.6 }, "-=0.8")
     .to(sms, { text: { value: smsText }, duration: 1.4, ease: "none" }, "-=0.4")
     .fromTo("[data-via-path]", { drawSVG: "0%" }, { drawSVG: "50%", duration: 0.5, ease: "power2.in" })
@@ -89,9 +89,9 @@ function hero() {
   const node = $("[data-via-node]");
   const loop = gsap.timeline({ repeat: -1, repeatDelay: 1.4, delay: intro.duration() })
     .set(dot, { attr: { cy: 0 }, opacity: 1 })
-    .to(dot, { attr: { cy: 75 }, duration: 0.7, ease: "power1.in" })
+    .to(dot, { attr: { cy: 60 }, duration: 0.7, ease: "power1.in" })
     .to(node, { scale: 1.35, transformOrigin: "50% 50%", duration: 0.15, yoyo: true, repeat: 1 })
-    .to(dot, { attr: { cy: 150 }, duration: 0.7, ease: "power1.out" })
+    .to(dot, { attr: { cy: 120 }, duration: 0.7, ease: "power1.out" })
     .to(dot, { opacity: 0, duration: 0.2 });
   whileVisible($(".hero"), loop);
 }
@@ -217,10 +217,11 @@ function alarm(mm: gsap.MatchMedia) {
 
 // The room: hairlines run from the hub to each seat, then messages keep moving along them.
 // Alarms travel into the room in red; the people and agents who talk get messages back out in ink.
-function room(mm: gsap.MatchMedia) {
+function room() {
   const map = $("[data-room]");
   const hub = $("[data-hub]", map);
   const seats = $$("[data-seat]", map);
+  const rows = $$("[data-row]");
   const links = seats.map((seat) => {
     const link = document.createElement("span");
     link.className = "link";
@@ -244,29 +245,38 @@ function room(mm: gsap.MatchMedia) {
   layout();
   ScrollTrigger.addEventListener("refreshInit", layout);
 
-  mm.add("(min-width: 1061px)", () => {
-    gsap.timeline({ scrollTrigger: { trigger: map, start: "top 72%" } })
-      .from(hub, { scale: 0.8, opacity: 0, duration: 1, ease: "expo.out" })
-      .from(links.map((l) => l.firstChild), { scaleX: 0, duration: 0.9, stagger: 0.07, ease: "power3.inOut" }, "-=0.6")
-      .from(seats, { opacity: 0, y: 20, duration: 0.9, stagger: 0.07, ease: "expo.out" }, "-=0.8");
+  // Pointing at a row in the list lights up that participant's line in the diagram, and the other way round.
+  const highlight = (i: number | null) => {
+    rows.forEach((r, k) => r.classList.toggle("active", k === i));
+    seats.forEach((s, k) => s.classList.toggle("dim", i !== null && k !== i));
+    links.forEach((l, k) => { l.classList.toggle("active", k === i); l.classList.toggle("dim", i !== null && k !== i); });
+  };
+  [...rows, ...seats].forEach((el) => {
+    const i = Number(el.dataset.row ?? el.dataset.seat);
+    el.addEventListener("pointerenter", () => highlight(i));
+    el.addEventListener("pointerleave", () => highlight(null));
+    el.addEventListener("focus", () => highlight(i));
+    el.addEventListener("blur", () => highlight(null));
+  });
 
-    const css = getComputedStyle(document.documentElement);
-    const stamp = css.getPropertyValue("--stamp").trim(), ink = css.getPropertyValue("--ink").trim();
-    const traffic = gsap.timeline({ repeat: -1 });
-    links.forEach((link, i) => {
-      const packet = link.lastChild as HTMLElement;
-      const inbound = packet.classList.contains("in");
-      traffic
-        .fromTo(packet, { left: inbound ? "100%" : "0%" }, { left: inbound ? "0%" : "100%", duration: 1.3, ease: "power1.inOut" }, i * 0.55)
-        .fromTo(packet, { opacity: 0 }, { opacity: 1, duration: 0.15 }, i * 0.55)
-        .to(packet, { opacity: 0, duration: 0.15 }, i * 0.55 + 1.15)
-        .to(hub, { borderColor: inbound ? stamp : ink, duration: 0.15, yoyo: true, repeat: 1 }, i * 0.55 + (inbound ? 1.2 : 0));
-    });
-    whileVisible(map, traffic);
+  gsap.timeline({ scrollTrigger: { trigger: map, start: "top 78%" } })
+    .from(hub, { opacity: 0, duration: 1, ease: "expo.out" })
+    .from(links.map((l) => l.firstChild), { scaleX: 0, duration: 0.9, stagger: 0.07, ease: "power3.inOut" }, "-=0.7")
+    .from(seats, { opacity: 0, duration: 0.8, stagger: 0.07, ease: "power2.out" }, "-=0.7");
+
+  const css = getComputedStyle(document.documentElement);
+  const stamp = css.getPropertyValue("--stamp").trim(), ink = css.getPropertyValue("--ink").trim();
+  const traffic = gsap.timeline({ repeat: -1 });
+  links.forEach((link, i) => {
+    const packet = link.lastChild as HTMLElement;
+    const inbound = packet.classList.contains("in");
+    traffic
+      .fromTo(packet, { left: inbound ? "100%" : "0%" }, { left: inbound ? "0%" : "100%", duration: 1.3, ease: "power1.inOut" }, i * 0.55)
+      .fromTo(packet, { opacity: 0 }, { opacity: 1, duration: 0.15 }, i * 0.55)
+      .to(packet, { opacity: 0, duration: 0.15 }, i * 0.55 + 1.15)
+      .to(hub, { borderColor: inbound ? stamp : ink, duration: 0.15, yoyo: true, repeat: 1 }, i * 0.55 + (inbound ? 1.2 : 0));
   });
-  mm.add("(max-width: 1060px)", () => {
-    gsap.from([hub, ...seats], { opacity: 0, y: 24, duration: 0.9, stagger: 0.06, ease: "expo.out", scrollTrigger: { trigger: map, start: "top 85%" } });
-  });
+  whileVisible(map, traffic);
 }
 
 function ways() {

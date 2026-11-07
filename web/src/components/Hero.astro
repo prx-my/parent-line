@@ -1,12 +1,12 @@
 ---
 import { repo } from "../content";
+import Run from "./Run.astro";
 ---
 <section class="hero" id="top">
   <div class="wrap">
-    <h1 class="display title" data-split><span class="soft">Scammers keep a parent alone.</span> Parent Line brings in the family.</h1>
-
-    <div class="grid after-head">
-      <div class="c-l" data-hero-intro>
+    <div class="grid top">
+      <div class="c-l6 intro" data-hero-intro>
+        <h1 class="title" data-split><span class="soft">Scammers keep a parent alone.</span> Parent Line brings in the family.</h1>
         <p class="lead measure">When Mom's bank SMS looks like a scam, the family group gets an alarm, and two AI agents help them act.</p>
         <div class="actions">
           <a class="btn" href="#alarm">Watch an alarm play out <span aria-hidden="true">↓</span></a>
@@ -14,18 +14,18 @@ import { repo } from "../content";
         </div>
       </div>
 
-      <div class="c-r" aria-label="A bank SMS becomes an alarm in the family group">
+      <div class="c-r scene" aria-label="A bank SMS becomes an alarm in the family group">
         <div data-hero-sms>
           <div class="meta-row"><span>SBI, on Mom's phone</span><span>Fri 6 Nov, 23:40</span></div>
           <p class="sms" data-sms>Dear Customer, A/C X1234 debited by Rs.480000.00 on date 06Nov26 by IMPS to RAKESH KUMAR Ref 431234567890. If not u? call 1800111109. -SBI</p>
         </div>
 
         <div class="via">
-          <svg class="via-svg" viewBox="0 0 24 150" preserveAspectRatio="none" aria-hidden="true">
-            <path class="soft-line" d="M12 0 V150" />
-            <path class="ink-line" data-via-path d="M12 0 V150" />
-            <rect class="paper-fill" x="5" y="68" width="14" height="14" />
-            <rect class="ink-line" data-via-node x="5" y="68" width="14" height="14" />
+          <svg class="via-svg" viewBox="0 0 24 120" preserveAspectRatio="none" aria-hidden="true">
+            <path class="soft-line" d="M12 0 V120" />
+            <path class="ink-line" data-via-path d="M12 0 V120" />
+            <rect class="paper-fill" x="5" y="53" width="14" height="14" />
+            <rect class="ink-line" data-via-node x="5" y="53" width="14" height="14" />
             <circle class="stamp-fill" data-via-dot cx="12" cy="0" r="3.5" opacity="0" />
           </svg>
           <div class="via-text">
@@ -46,19 +46,25 @@ import { repo } from "../content";
         </div>
       </div>
     </div>
+
+    <Run />
   </div>
 </section>
 
 <style>
   .hero { border-top: 0; padding-top: calc(64px + clamp(32px, 4vw, 56px)); }
-  .title { max-width: 14ch; }
-  .actions { display: flex; flex-wrap: wrap; align-items: center; gap: 20px 28px; margin-top: 40px; }
-  .sms { margin-top: 16px; font: 400 var(--fs-small)/1.65 var(--mono); overflow-wrap: anywhere; }
-  .via { display: grid; grid-template-columns: 24px minmax(0, 1fr); column-gap: var(--sp-item); height: 150px; margin-block: 20px; }
-  .via-svg { width: 24px; height: 150px; }
+  .top { align-items: center; row-gap: var(--sp-block); }
+  .intro { display: grid; gap: 28px; justify-items: start; }
+  /* Sized to half the grid, so the headline and the example beside it come out about the same height */
+  .title { font-size: clamp(3rem, 5.9vw, 5.75rem); line-height: 0.9; font-stretch: 75%; font-weight: 650; letter-spacing: -0.012em; }
+  .actions { display: flex; flex-wrap: wrap; align-items: center; gap: 20px 28px; margin-top: 8px; }
+
+  .sms { margin-top: 14px; font: 400 var(--fs-small)/1.65 var(--mono); overflow-wrap: anywhere; }
+  .via { display: grid; grid-template-columns: 24px minmax(0, 1fr); column-gap: var(--sp-item); height: 120px; margin-block: 16px; }
+  .via-svg { width: 24px; height: 120px; }
   .via-text { align-self: center; }
-  .rules { list-style: none; margin: 8px 0 0; padding: 0; display: grid; gap: 2px; font: 400 0.8125rem/1.6 var(--mono); }
+  .rules { list-style: none; margin: 6px 0 0; padding: 0; display: grid; gap: 2px; font: 400 0.8125rem/1.6 var(--mono); }
   .rules li::before { content: "→ "; color: var(--stamp); }
-  .alarm-title { margin-top: 18px; }
-  [data-hero-alarm] p + p { margin-top: 10px; }
+  .alarm-title { margin-top: 16px; }
+  [data-hero-alarm] p + p { margin-top: 8px; }
 </style>

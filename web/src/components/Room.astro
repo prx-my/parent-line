@@ -2,50 +2,69 @@
 import { seats } from "../content";
 ---
 <section id="room">
-  <div class="wrap">
-    <div class="head">
-      <h2 class="h2">One room on Switch</h2>
-      <p class="lead">Everyone posts to the family's Telegram group. Switch delivers.</p>
+  <div class="wrap grid split">
+    <div class="c-l">
+      <div class="head">
+        <h2 class="h2">One room on Switch</h2>
+        <p class="lead">Everyone posts to the family's Telegram group. Switch delivers.</p>
+      </div>
+      <ul class="who" data-stagger>
+        {seats.map((s, i) => (
+          <li data-row={i} tabindex="0">
+            <span><b>{s.name}</b><span class="meta">{s.kind}</span></span>
+            <code>{s.call}</code>
+          </li>
+        ))}
+      </ul>
     </div>
 
-    <div class="map after-head" data-room>
-      <div class="hub" data-hub><b class="h4">The family room</b><span class="meta">a Telegram group, on Switch</span></div>
-      {seats.map((s) => (
-        <div class="seat" data-seat data-flow={s.flow} style={`--x:${s.x}%;--y:${s.y}%`}>
-          <b class="h4">{s.name}</b>
-          <span class="meta">{s.kind}</span>
-          <code>{s.call}</code>
-        </div>
-      ))}
+    <div class="c-r">
+      <div class="map" data-room aria-hidden="true">
+        <div class="hub" data-hub><b>The family room</b><span class="meta">on Switch</span></div>
+        {seats.map((s, i) => (
+          <span class="seat" data-seat={i} data-flow={s.flow} style={`--x:${s.x}%;--y:${s.y}%`}>{s.name}</span>
+        ))}
+      </div>
+      <p class="meta legend"><span class="key in"></span>alarms into the room <span class="key"></span>messages out</p>
     </div>
-
-    <p class="note after-block" data-reveal>Alarms are rules in code. Judgement goes to the AI agents.</p>
   </div>
 </section>
 
 <style>
-  .map { position: relative; aspect-ratio: 1240 / 860; }
+  .split { align-items: center; }
+
+  .who { list-style: none; margin: var(--sp-head) 0 0; padding: 0; border-top: 1px solid var(--rule-strong); }
+  .who li { display: flex; justify-content: space-between; align-items: baseline; gap: 16px; padding-block: 12px; border-bottom: 1px solid var(--rule); cursor: default; outline: none; transition: padding 0.3s var(--ease); }
+  .who li > span { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; }
+  .who b { font-weight: 600; }
+  .who code { font-size: var(--fs-meta); color: var(--ink-soft); text-align: right; transition: color 0.3s; }
+  .who li.active { padding-left: 10px; }
+  .who li.active code { color: var(--ink); }
+  .who li:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
+
+  .map { position: relative; aspect-ratio: 1; max-width: 560px; margin-inline: auto; }
   .hub {
     position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); z-index: 2;
-    width: 15rem; aspect-ratio: 1; border-radius: 50%; border: 1px solid var(--ink); background: var(--paper);
-    display: grid; place-content: center; text-align: center; gap: 4px; padding: 24px;
+    width: 30%; aspect-ratio: 1; border-radius: 50%; border: 1px solid var(--ink); background: var(--paper);
+    display: grid; place-content: center; text-align: center; gap: 2px; padding: 8px;
   }
-  .hub b { font-size: 1.75rem; font-stretch: 75%; }
+  .hub b { font-size: clamp(1rem, 2vw, 1.375rem); line-height: 1; font-stretch: 80%; font-weight: 640; }
   .seat {
     position: absolute; left: var(--x); top: var(--y); transform: translate(-50%, -50%); z-index: 1;
-    width: 14.5rem; padding: 10px 12px; background: var(--paper); display: grid; gap: 2px;
+    padding: 4px 8px; background: var(--paper); white-space: nowrap;
+    font-size: clamp(0.875rem, 1.4vw, 1.0625rem); font-weight: 600; font-stretch: 85%;
+    transition: opacity 0.3s;
   }
-  .seat code { margin-top: 6px; font-size: var(--fs-meta); overflow-wrap: anywhere; }
+  .seat.dim { opacity: 0.3; }
   .map :global(.link) { position: absolute; left: 50%; top: 50%; height: 1px; transform-origin: 0 50%; z-index: 0; }
-  .map :global(.link i) { position: absolute; inset: 0; background: var(--rule-strong); transform-origin: left; }
+  .map :global(.link i) { position: absolute; inset: 0; background: var(--rule-strong); transform-origin: left; transition: opacity 0.3s, background-color 0.3s; }
+  .map :global(.link.dim i) { opacity: 0.3; }
+  .map :global(.link.active i) { background: var(--ink); }
   .map :global(.link b) { position: absolute; top: -2.5px; left: 0; width: 6px; height: 6px; margin-left: -3px; background: var(--ink); opacity: 0; }
   .map :global(.link b.in) { background: var(--stamp); }
-  @media (max-width: 1060px) {
-    .map { aspect-ratio: auto; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); column-gap: var(--gap); }
-    .hub, .seat { position: static; transform: none; width: auto; }
-    .hub { grid-column: 1 / -1; aspect-ratio: auto; border-radius: 0; border: 0; border-top: 1px solid var(--ink); border-bottom: 1px solid var(--ink); text-align: left; place-content: start; padding: 18px 0; margin-bottom: 8px; }
-    .seat { padding: 18px 0; border-bottom: 1px solid var(--rule); }
-    .map :global(.link) { display: none; }
-  }
-  @media (max-width: 600px) { .map { grid-template-columns: minmax(0, 1fr); } }
+
+  .legend { display: flex; justify-content: center; align-items: center; gap: 8px; margin-top: 16px; }
+  .key { display: inline-block; width: 7px; height: 7px; background: var(--ink); }
+  .key.in { background: var(--stamp); }
+  .legend .key:not(:first-child) { margin-left: 14px; }
 </style>

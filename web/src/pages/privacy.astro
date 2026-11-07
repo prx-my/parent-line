@@ -1,0 +1,45 @@
+---
+import Page from "../layouts/Page.astro";
+import { repo } from "../content";
+---
+<Page title="Privacy policy" updated="7 November 2026" description="What the Parent Line website and software collect, where that data goes, and what stays on the family's own computer.">
+  <p class="lead">Parent Line is open-source software that a family runs on its own computer. Nobody, including us, runs a central server that holds families' data. This page explains what the website collects and where data goes when a family uses the software.</p>
+
+  <h2>This website</h2>
+  <ul>
+    <li>No cookies, no analytics, no tracking and no sign-up. Fonts are bundled with the site, so the pages load nothing from other servers.</li>
+    <li>The site is hosted on Vercel, which keeps standard server logs, such as IP address, browser and the pages requested, to run and protect its service. See <a href="https://vercel.com/legal/privacy-policy">Vercel's privacy policy</a>.</li>
+    <li>Links to GitHub, YouTube and news sites take you to those sites, and their policies apply there.</li>
+  </ul>
+
+  <h2>The software: what stays on the family's computer</h2>
+  <ul>
+    <li><strong>Settings.</strong> <code>family.toml</code> holds the parent's name and phone number, the family members, a backup contact and the bank. It stays on the family's computer and is never committed to the code repository.</li>
+    <li><strong>Bank watch</strong> receives the parent's bank SMS, forwarded from their phone, and checks it against its rules on that computer. To work, it keeps the text of recent SMS (to skip duplicates), payees seen before, recent debit amounts and open cases in a local file. An ordinary bank SMS is never posted anywhere and never reaches an AI.</li>
+    <li><strong>Ride watch</strong> runs only when someone in the group starts it for a ride. Nobody is tracked otherwise, and it never sees a location.</li>
+  </ul>
+
+  <h2>The software: what reaches other services</h2>
+  <p>Parent Line works through services the family chooses and sets up with its own accounts. Each one handles data under its own policy.</p>
+  <ul>
+    <li><strong>Switch</strong> runs on the family's computer or on a server they choose. It stores the room's messages, the case files the Clerk writes, and photos sent in the group.</li>
+    <li><strong>Telegram</strong> carries the family group, so alarms and replies posted there are handled by Telegram.</li>
+    <li><strong>Anthropic (Claude).</strong> The Guardian and the Clerk run on Claude Code, so the messages sent to them and the case details they work on are processed by Anthropic. They see only the rooms they are invited to. A ride screenshot is read by the Guardian only if that ride's alarm fires.</li>
+    <li><strong>Twilio</strong>, only if the family sets up the missed-call SOS. Twilio receives the call and the caller's number. Call watch rejects the call and acts only on the parent's numbers.</li>
+    <li><strong>X</strong>, only if the family chooses to post publicly. The Clerk drafts a post, and a family member opens it in X and presses Post themselves. Drafts that contain phone numbers, email addresses or account-style numbers are refused. The Clerk is told to leave names out, and a family member reads every post before it goes out.</li>
+    <li><strong>WhatsApp or SMS</strong>, only for the optional help line. Messages pass through Meta or Twilio.</li>
+  </ul>
+
+  <h2>Your choices</h2>
+  <ul>
+    <li>Every part is optional apart from the family group and Bank watch. Ride watch, the missed-call SOS, public posts and the help line are each switched on separately.</li>
+    <li>To delete Parent Line's data, delete <code>family.toml</code> and the <code>*-state.json</code> files, then remove the room in Switch, which also removes its case files. Messages already posted in Telegram stay in the group until someone deletes them there.</li>
+    <li>The parent should know Parent Line is set up and agree to it. It is meant to bring the family in, not to watch a parent without their knowledge.</li>
+  </ul>
+
+  <h2>Not legal or financial advice</h2>
+  <p>Parent Line is a hackathon project, provided as is. It can't stop a transfer; only the bank can. In an emergency, call 1930 for cyber fraud or 112.</p>
+
+  <h2>Questions and changes</h2>
+  <p>Ask questions by opening an issue on <a href={`${repo}/issues`}>GitHub</a>. Any change to this policy will show in the date at the top and in the <a href={`${repo}/commits/main/web/src/pages/privacy.astro`}>repository history</a>.</p>
+</Page>

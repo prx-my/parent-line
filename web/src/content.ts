@@ -63,15 +63,15 @@ export const alarmSteps: AlarmStep[] = [
 ];
 
 // flow: "alarm" seats only post into the room (alarms, drawn red); "talk" seats read and post.
-export type Seat = { x: number; y: number; name: string; kind: string; what: string; call: string; flow: "alarm" | "talk" };
+export type Seat = { x: number; y: number; name: string; kind: string; call: string; flow: "alarm" | "talk" };
 
-// Positions are percentages of the diagram, on an ellipse around the room.
+// Positions are percentages of a square diagram, evenly spaced on a circle around the room.
 export const seats: Seat[] = [
-  { x: 50, y: 9, name: "The family", kind: "people", what: "Take the jobs: call Mom, report, call the bank.", call: "Telegram bridge", flow: "talk" },
-  { x: 83, y: 22, name: "Guardian", kind: "AI agent", what: "Hands out the jobs, chases them, closes the alarm.", call: "the room's instructions", flow: "talk" },
-  { x: 88, y: 62, name: "Clerk", kind: "AI agent", what: "Case file, complaints, the bank's deadline, public posts.", call: "create_room_document", flow: "talk" },
-  { x: 67, y: 91, name: "Line", kind: "AI agent, optional", what: "The parent's help line on WhatsApp or SMS.", call: "connect_to_room", flow: "alarm" },
-  { x: 33, y: 91, name: "Call watch", kind: "service, no AI", what: "Turns the parent's missed call into an SOS.", call: "Twilio in, agent API out", flow: "alarm" },
-  { x: 12, y: 62, name: "Ride watch", kind: "service, no AI", what: "A check-in timer for a ride alone at night.", call: "GET /agents/{id}/events", flow: "alarm" },
-  { x: 17, y: 22, name: "Bank watch", kind: "service, no AI", what: "Reads bank SMS and posts only alarms.", call: "POST /agents/{id}/message", flow: "alarm" },
+  { x: 50, y: 12, name: "The family", kind: "people", call: "Telegram bridge", flow: "talk" },
+  { x: 79.7, y: 26.3, name: "Guardian", kind: "AI agent", call: "the room's instructions", flow: "talk" },
+  { x: 87, y: 58.5, name: "Clerk", kind: "AI agent", call: "create_room_document", flow: "talk" },
+  { x: 66.5, y: 84.2, name: "Line", kind: "AI agent, optional", call: "connect_to_room", flow: "alarm" },
+  { x: 33.5, y: 84.2, name: "Call watch", kind: "service, no AI", call: "Twilio in, agent API out", flow: "alarm" },
+  { x: 13, y: 58.5, name: "Ride watch", kind: "service, no AI", call: "GET /agents/{id}/events", flow: "alarm" },
+  { x: 20.3, y: 26.3, name: "Bank watch", kind: "service, no AI", call: "POST /agents/{id}/message", flow: "alarm" },
 ];

@@ -1,0 +1,5 @@
+# Parent Line: everything here is public; crawlers and AI assistants are welcome.
+User-agent: *
+Allow: /
+
+# A plain-text summary for language models: https://web-jet-three-69.vercel.app/llms.txt

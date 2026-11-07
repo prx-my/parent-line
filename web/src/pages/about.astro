@@ -1,0 +1,41 @@
+---
+import Page from "../layouts/Page.astro";
+import { repo } from "../content";
+---
+<Page title="About" updated="7 November 2026" description="Why Parent Line exists, what it does, who built it, and the sources behind it.">
+  <p class="lead">Parent Line helps a family respond together when an older parent is in trouble, starting with digital-arrest scams.</p>
+
+  <h2>Why it exists</h2>
+  <p>Digital-arrest scammers win through isolation. They keep an older parent on a video call for hours or days, tell them not to speak to anyone, and walk them through sending their savings. The bank's confirmation call doesn't help, because it reaches the one person the scammer controls.</p>
+  <p>The Ministry of Home Affairs told the Supreme Court of 21,900+ digital-arrest complaints involving ₹647 crore+ between January and August 2026. The NHRC says these crimes mostly affect elderly people and recommends alerts to a trusted person. Parent Line is built on that idea: tell the family, then help them act fast.</p>
+
+  <h2>What it does</h2>
+  <ul>
+    <li><strong>Bank watch</strong> reads the parent's bank SMS and raises an alarm in the family's Telegram group when a transaction looks like a scam. Its rules are plain, tested code, not an AI judgement.</li>
+    <li><strong>The Guardian</strong>, an AI agent, splits the response into jobs (call Mom, report on 1930, call the bank), tracks who took each one and chases the rest.</li>
+    <li><strong>The Clerk</strong>, an AI agent, keeps the case file, writes the complaint and the letter to the bank, and tracks RBI's 3-working-day reporting deadline.</li>
+    <li><strong>Ride watch</strong> checks in on someone taking a ride alone at night. <strong>Call watch</strong> turns a missed call from the parent into an SOS.</li>
+  </ul>
+  <p>The parent installs nothing. The family uses the group chat it already has. Agents coordinate and write, and people make the calls and decide. No agent ever publishes anything on its own.</p>
+
+  <h2>More than scams</h2>
+  <p>Digital arrest is the first example. The pattern underneath is general: a watcher notices trouble that the person can't report, posts it in a shared room, an agent turns it into jobs, another does the paperwork, and the family acts. The same approach could cover a missed daily check-in, a SIM-swap alert, or a pension or insurance deadline. None of these are built yet; the <a href={`${repo}/blob/main/docs/roadmap.md`}>roadmap</a> lists what is.</p>
+
+  <h2>How it's built</h2>
+  <p>Parent Line runs on <a href="https://github.com/sandbox-quantum/switch">Switch</a>, an open-source platform where people and AI agents share rooms on chat apps. Switch turns the family's Telegram group into a room with the family, two Claude Code agents and three small Python services. The code uses Python's standard library only, and each family runs it on its own computer.</p>
+  <p>While building it I also contributed to Switch: WhatsApp and SMS as messaging platforms, and a setting to hide agents' tool calls in Telegram. The <a href={`${repo}#my-pull-requests-to-switch`}>README lists the pull requests</a>.</p>
+
+  <h2>Who built it</h2>
+  <p>Prakhar Gupta (<a href="https://github.com/prx-my">prx-my on GitHub</a>), for the Flip the Switch hackathon run by WeMakeDevs, DevTools Academy and Switch in November 2026.</p>
+
+  <h2>Sources</h2>
+  <ul>
+    <li><a href="https://www.hindustantimes.com/india-news/21900-digital-arrest-complaints-registered-till-sept-mha-to-sc-101792697131006.html">Hindustan Times, 23 Oct 2026</a>: MHA figures given to the Supreme Court</li>
+    <li><a href="https://indianexpress.com/article/explained/digital-arrest-scams-supreme-court-rbi-bank-liability-explained-10943089/">Indian Express, 30 Oct 2026</a>: how victims are isolated, and bank liability</li>
+    <li><a href="https://www.pib.gov.in/PressReleasePage.aspx?PRID=2270875&lang=1&reg=3">PIB (NHRC), 9 Jun 2026</a>: cybercrime mostly affects elderly people</li>
+    <li>Families who stopped these scams: <a href="https://www.amarujala.com/lucknow/up-digital-arrest-daughter-saves-86-year-old-father-from-being-duped-2026-04-22">Lucknow</a>, <a href="https://www.indiatoday.in/cities/other-cities/story/digital-arrest-scam-rajkot-elderly-couple-duped-rs-55-5-lakh-fake-mumbai-crime-branch-officers-2981908-2026-08-28">Rajkot</a>, <a href="https://www.indiatoday.in/india/story/digital-arrest-cyber-scam-bareilly-8-year-old-boy-saves-parents-2894121-2026-04-10">Bareilly</a>. These are individual stories, not a study.</li>
+  </ul>
+
+  <h2>Links</h2>
+  <p><a href={repo}>Source code</a> · <a href={`${repo}/blob/main/AGENTS.md`}>AGENTS.md</a> · <a href={`${repo}/blob/main/docs/design.md`}>Design document</a> · <a href="https://youtu.be/VWSH7CKUek0">Demo video</a></p>
+</Page>
