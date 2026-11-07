@@ -10,11 +10,11 @@ const cmd = [
 ---
 <section id="run">
   <div class="wrap">
-    <div class="head">
-      <h2>See the alarm in one minute</h2>
-      <p>Python 3.11 or newer, no other dependencies, no Switch needed for this part. The tests pass, and the last command prints the alarm the family group would get.</p>
+    <div class="grid head">
+      <h2 class="h2 c-l6">See the alarm in one minute</h2>
+      <p class="lead c-r">Python 3.11 or newer, no other dependencies, no Switch needed for this part. The tests pass, and the last command prints the alarm the family group would get.</p>
     </div>
-    <div class="term" data-reveal>
+    <div class="term after-head" data-reveal>
       <div class="bar"><span>Terminal</span><button type="button" data-copy>Copy</button></div>
       <pre data-cmd>{cmd}</pre>
     </div>
@@ -45,10 +45,10 @@ const cmd = [
 </script>
 
 <style>
-  #run { border-top: 1px solid var(--rule); }
-  .term { margin-top: clamp(48px, 6vw, 72px); background: var(--ink); color: var(--paper); }
-  .bar { display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 12px 20px; border-bottom: 1px solid color-mix(in srgb, var(--paper) 16%, transparent); font: 400 0.8125rem/1 var(--mono); color: color-mix(in srgb, var(--paper) 60%, transparent); }
-  button { font: 500 0.875rem/1 var(--sans); padding: 6px 0 4px; border: 0; border-bottom: 1px solid color-mix(in srgb, var(--paper) 40%, transparent); background: none; color: var(--paper); cursor: pointer; }
+  .term { background: var(--ink); color: var(--paper); }
+  .bar { display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 12px 20px; border-bottom: 1px solid color-mix(in srgb, var(--paper) 16%, transparent); font: 400 var(--fs-meta)/1 var(--mono); color: color-mix(in srgb, var(--paper) 60%, transparent); }
+  button { font: 500 var(--fs-small)/1 var(--sans); padding: 6px 0 4px; border: 0; border-bottom: 1px solid color-mix(in srgb, var(--paper) 40%, transparent); background: none; color: var(--paper); cursor: pointer; }
   button:hover { border-color: var(--paper); }
   pre { margin: 0; padding: 24px 20px 28px; overflow-x: auto; font: 400 0.875rem/1.85 var(--mono); }
+  .note { margin-top: 32px; }
 </style>

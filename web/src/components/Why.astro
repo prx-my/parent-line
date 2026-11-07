@@ -1,14 +1,12 @@
 ---
 const lanes = [
   {
-    title: "The bank's check", sub: "asks the victim",
-    nodes: ["Bank calls to confirm", "Mom answers, scammer still on video", "\"Yes, it's me\""],
-    end: { text: "Then an FD broken early, then a loan", tone: "bad" },
+    title: "The bank's check", sub: "asks the victim", tone: "bad",
+    nodes: ["Bank calls to confirm", "Mom answers, scammer still on video", "\"Yes, it's me\"", "Then an FD broken early, then a loan"],
   },
   {
-    title: "Parent Line", sub: "asks the family",
-    nodes: ["Bank SMS", "Bank watch", "Family group"],
-    end: { text: "Riya calls Mom, and the ringing call breaks the scam's hold", tone: "good" },
+    title: "Parent Line", sub: "asks the family", tone: "good",
+    nodes: ["Bank SMS", "Bank watch", "Family group", "Riya calls Mom, and the ringing call breaks the scam's hold"],
   },
 ];
 const stats = [
@@ -24,36 +22,59 @@ const stories = [
 ---
 <section id="why">
   <div class="wrap">
-    <p class="statement" data-words>Banks call to confirm a large transfer. In a digital arrest, that call reaches the one person the scammer controls, who has been told exactly what to say. Parent Line asks someone else.</p>
+    <div class="grid">
+      <p class="statement c-full words" data-words>Banks call to confirm a large transfer. In a digital arrest, that call reaches the one person the scammer controls, who has been told exactly what to say. Parent Line asks someone else.</p>
+    </div>
 
-    <div class="lanes">
+    <div class="lanes after-head">
       {lanes.map((lane) => (
         <div class="lane" data-lane>
-          <div class="label"><h3>{lane.title}</h3><p>{lane.sub}</p></div>
-          <div class="track">
+          <div class="lane-head"><h3 class="h4">{lane.title}</h3><span class="meta">{lane.sub}</span></div>
+          <div class="track grid">
             <span class="rule" data-lane-rule aria-hidden="true"></span>
-            <ol>
-              {lane.nodes.map((n) => <li data-lane-node>{n}</li>)}
-              <li data-lane-node class={lane.end.tone}>{lane.end.text}</li>
-            </ol>
+            <span class="pulse" data-lane-pulse aria-hidden="true"></span>
+            {lane.nodes.map((n, i) => (
+              <div class:list={["node c-3", { end: i === lane.nodes.length - 1, [lane.tone]: i === lane.nodes.length - 1 }]} data-lane-node>
+                {i === lane.nodes.length - 1 ? (
+                  lane.tone === "bad" ? (
+                    <svg class="endmark" viewBox="0 0 28 40" aria-hidden="true" data-drip>
+                      <rect class="stamp-fill" x="7" y="0" width="14" height="14" />
+                      <rect class="stamp-fill drop" x="10" y="4" width="8" height="8" />
+                      <rect class="stamp-fill drop" x="10" y="4" width="8" height="8" />
+                      <rect class="stamp-fill drop" x="10" y="4" width="8" height="8" />
+                    </svg>
+                  ) : (
+                    <svg class="endmark" viewBox="-20 -20 40 40" aria-hidden="true" data-rings>
+                      <circle class="ink-line ring" r="7" />
+                      <circle class="ink-line ring" r="7" />
+                      <circle class="ink-line ring" r="7" />
+                      <rect class="ink-fill" x="-7" y="-7" width="14" height="14" />
+                    </svg>
+                  )
+                ) : (
+                  <span class="tick" aria-hidden="true"></span>
+                )}
+                <span class="label">{n}</span>
+              </div>
+            ))}
           </div>
         </div>
       ))}
     </div>
 
-    <div class="stats">
+    <div class="grid after-head">
       {stats.map((s) => (
-        <div class="stat" data-reveal>
-          <div class="n" data-count={s.count} data-prefix={s.pre} data-suffix={s.suf}>{s.n}</div>
-          <p>{s.text}</p>
-          <p class="src"><a href={s.href}>{s.src}</a></p>
+        <div class="stat c-4" data-reveal>
+          <div class="num" data-count={s.count} data-prefix={s.pre} data-suffix={s.suf}>{s.n}</div>
+          <p class="soft measure">{s.text}</p>
+          <p class="meta"><a href={s.href}>{s.src}</a></p>
         </div>
       ))}
     </div>
 
-    <ul class="stories" data-stagger>
+    <ul class="grid stories after-block" data-stagger>
       {stories.map((s) => (
-        <li><b>{s.amt}</b>{s.text} <a href={s.href}>{s.src}</a></li>
+        <li class="c-4"><b class="h4">{s.amt}</b><span class="small soft">{s.text} <a href={s.href}>{s.src}</a></span></li>
       ))}
     </ul>
     <p class="note" data-reveal>The NHRC recommends "trusted-person authentication" alerts for the elderly (<a href="https://www.pib.gov.in/PressReleasePage.aspx?PRID=2270875&lang=1&reg=3">PIB, 9 Jun 2026</a>). The three cases above are single stories; we found no study of how often family help stops these scams.</p>
@@ -61,41 +82,33 @@ const stories = [
 </section>
 
 <style>
-  #why { border-top: 1px solid var(--rule); }
-  .statement { font-size: clamp(2rem, 4.4vw, 3.8rem); line-height: 1.06; font-stretch: 80%; font-weight: 520; letter-spacing: -0.008em; max-width: 21ch; }
+  .words { max-width: 22ch; }
 
-  .lanes { display: grid; gap: 64px; margin-top: clamp(80px, 10vw, 136px); }
-  .lane { display: grid; grid-template-columns: 13rem minmax(0, 1fr); gap: 24px; }
-  .label h3 { font-size: 1.5rem; font-stretch: 85%; line-height: 1.1; }
-  .label p { font: 400 0.8125rem/1.6 var(--mono); color: var(--ink-soft); margin-top: 4px; }
+  .lanes { display: grid; gap: var(--sp-block); }
+  .lane-head { display: flex; align-items: baseline; gap: 14px; margin-bottom: 28px; }
   .track { position: relative; }
-  .rule { position: absolute; left: 0; right: 0; top: 6px; height: 1px; background: var(--ink); transform-origin: left; }
-  ol { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 24px; }
-  li { position: relative; padding-top: 30px; font-size: 1.0625rem; line-height: 1.35; }
-  li::before { content: ""; position: absolute; left: 0; top: 0; width: 1px; height: 13px; background: var(--ink); }
-  li.bad { color: var(--stamp); font-weight: 500; }
-  li.bad::before { background: var(--stamp); width: 13px; height: 13px; left: -6px; }
-  li.good { font-weight: 600; }
-  li.good::before { width: 13px; height: 13px; left: -6px; }
-  @media (max-width: 860px) {
-    .lane { grid-template-columns: minmax(0, 1fr); gap: 20px; }
-    .rule { left: 6px; right: auto; top: 0; bottom: 0; width: 1px; height: auto; transform-origin: top; }
-    ol { grid-template-columns: minmax(0, 1fr); gap: 18px; }
-    li { padding-top: 0; padding-left: 30px; }
-    li::before { left: 6px; top: 0.6em; width: 13px; height: 1px; }
-    li.bad::before, li.good::before { left: 0; top: 0.35em; width: 13px; height: 13px; }
+  .rule { position: absolute; left: 0; right: 0; top: 0; height: 1px; background: var(--ink); transform-origin: left; }
+  .pulse { position: absolute; left: 0; top: -3px; width: 7px; height: 7px; background: var(--ink); opacity: 0; }
+  .node { position: relative; padding-top: 30px; padding-right: 12px; line-height: 1.35; }
+  .tick { position: absolute; left: 0; top: 0; width: 1px; height: 14px; background: var(--ink); }
+  .endmark { position: absolute; left: -14px; top: -7px; width: 28px; }
+  [data-rings] { left: -20px; top: -20px; width: 40px; }
+  .bad .label { color: var(--stamp); font-weight: 600; }
+  .good .label { font-weight: 600; }
+  @media (max-width: 900px) {
+    .track { row-gap: 22px; padding-left: 30px; }
+    .node { grid-column: 1 / -1; padding-top: 0; }
+    .rule { left: 0; right: auto; bottom: 0; width: 1px; height: auto; transform-origin: top; }
+    .pulse { display: none; }
+    .tick { left: -30px; top: 0.7em; width: 14px; height: 1px; }
+    .endmark { left: -44px; top: 0; }
+    [data-rings] { left: -50px; top: -8px; }
   }
 
-  .stats { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 24px; margin-top: clamp(96px, 12vw, 160px); }
-  .stat { border-top: 1px solid var(--rule-strong); padding-top: 24px; }
-  .n { font-size: clamp(3.2rem, 7.2vw, 6.4rem); line-height: 0.9; font-stretch: 75%; font-weight: 620; letter-spacing: -0.01em; font-variant-numeric: tabular-nums; white-space: nowrap; }
-  .stat p { margin-top: 18px; color: var(--ink-soft); font-size: 1rem; max-width: 22rem; }
-  .stat .src { margin-top: 10px; font: 400 0.75rem/1.5 var(--mono); }
-  @media (max-width: 860px) { .stats { grid-template-columns: minmax(0, 1fr); gap: 48px; } }
-
-  .stories { list-style: none; margin: clamp(72px, 9vw, 112px) 0 0; padding: 0; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 24px; }
-  .stories li { padding: 20px 0 0; border-top: 1px solid var(--rule); color: var(--ink-soft); font-size: 1rem; }
-  .stories li::before { display: none; }
-  .stories b { display: block; color: var(--ink); font-weight: 620; font-size: 1.75rem; font-stretch: 80%; line-height: 1.1; margin-bottom: 8px; }
-  @media (max-width: 860px) { .stories { grid-template-columns: minmax(0, 1fr); } .stories li { padding-left: 0; } }
+  .stat .num { white-space: nowrap; }
+  .stat p { margin-top: 16px; }
+  .stat .meta { margin-top: 10px; }
+  .stat, .stories li { border-top: 1px solid var(--rule-strong); padding-top: 24px; }
+  .stories { list-style: none; padding: 0; margin-bottom: 0; row-gap: 40px; }
+  .stories li { display: grid; gap: 8px; border-top-color: var(--rule); padding-top: 20px; }
 </style>

@@ -3,61 +3,55 @@ import { seats } from "../content";
 ---
 <section id="room">
   <div class="wrap">
-    <div class="head">
-      <h2>Everyone works in one room on Switch</h2>
-      <p>Switch turns the family's Telegram group into a room. People, AI agents and three small services all post there, and Switch delivers each message to whoever it's addressed to.</p>
+    <div class="grid head">
+      <h2 class="h2 c-l6">Everyone works in one room on Switch</h2>
+      <p class="lead c-r">Switch turns the family's Telegram group into a room. People, AI agents and three small services all post there, and Switch delivers each message to whoever it's addressed to.</p>
     </div>
 
-    <div class="map" data-room>
-      <div class="hub" data-hub><b>The family room</b><span>a Telegram group, on Switch</span></div>
+    <div class="map after-head" data-room>
+      <div class="hub" data-hub><b class="h4">The family room</b><span class="meta">a Telegram group, on Switch</span></div>
       {seats.map((s) => (
-        <div class="seat" data-seat style={`--x:${s.x}%;--y:${s.y}%`}>
-          <b>{s.name}</b>
-          <span class="kind">{s.kind}</span>
-          <p>{s.what}</p>
+        <div class="seat" data-seat data-flow={s.flow} style={`--x:${s.x}%;--y:${s.y}%`}>
+          <b class="h4">{s.name}</b>
+          <span class="meta">{s.kind}</span>
+          <p class="small soft">{s.what}</p>
           <code>{s.call}</code>
         </div>
       ))}
     </div>
 
-    <div class="notes" data-stagger>
-      <p><b>Rules decide, AI judges.</b> Whether to wake the family about money is a rule, so it is plain, tested code. Reading a ride screenshot is a judgement, so it goes to an AI, and only after an alarm fires.</p>
-      <p><b>Agents hand off through the room.</b> Bank watch and Line raise an alarm by mentioning the Guardian. The Guardian hands the case to the Clerk the same way, and the Clerk keeps the case file as a Switch room document.</p>
+    <div class="grid after-block" data-stagger>
+      <p class="c-l soft"><b class="ink">Rules decide, AI judges.</b> Whether to wake the family about money is a rule, so it is plain, tested code. Reading a ride screenshot is a judgement, so it goes to an AI, and only after an alarm fires.</p>
+      <p class="c-r soft measure"><b class="ink">Agents hand off through the room.</b> Bank watch and Line raise an alarm by mentioning the Guardian. The Guardian hands the case to the Clerk the same way, and the Clerk keeps the case file as a Switch room document.</p>
     </div>
   </div>
 </section>
 
 <style>
-  #room { border-top: 1px solid var(--rule); }
-  .map { position: relative; margin-top: clamp(64px, 8vw, 104px); aspect-ratio: 1240 / 860; }
+  .ink { color: var(--ink); }
+  .map { position: relative; aspect-ratio: 1240 / 860; }
   .hub {
     position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); z-index: 2;
     width: 15rem; aspect-ratio: 1; border-radius: 50%; border: 1px solid var(--ink); background: var(--paper);
-    display: grid; place-content: center; text-align: center; gap: 6px; padding: 24px;
+    display: grid; place-content: center; text-align: center; gap: 4px; padding: 24px;
   }
-  .hub b { font-size: 1.75rem; line-height: 1; font-stretch: 75%; font-weight: 640; }
-  .hub span { font: 400 0.75rem/1.4 var(--mono); color: var(--ink-soft); }
+  .hub b { font-size: 1.75rem; font-stretch: 75%; }
   .seat {
     position: absolute; left: var(--x); top: var(--y); transform: translate(-50%, -50%); z-index: 1;
     width: 14.5rem; padding: 10px 12px; background: var(--paper); display: grid; gap: 2px;
   }
-  .seat b { font-size: 1.5rem; line-height: 1.05; font-stretch: 80%; font-weight: 640; }
-  .kind { font: 400 0.75rem/1.5 var(--mono); color: var(--ink-soft); }
-  .seat p { margin-top: 6px; font-size: 0.9375rem; line-height: 1.4; color: var(--ink-soft); }
-  .seat code { margin-top: 6px; font-size: 0.75rem; overflow-wrap: anywhere; }
+  .seat p { margin-top: 6px; }
+  .seat code { margin-top: 6px; font-size: var(--fs-meta); overflow-wrap: anywhere; }
   .map :global(.link) { position: absolute; left: 50%; top: 50%; height: 1px; transform-origin: 0 50%; z-index: 0; }
-  .map :global(.link i) { display: block; width: 100%; height: 100%; background: var(--rule-strong); transform-origin: left; }
+  .map :global(.link i) { position: absolute; inset: 0; background: var(--rule-strong); transform-origin: left; }
+  .map :global(.link b) { position: absolute; top: -2.5px; left: 0; width: 6px; height: 6px; margin-left: -3px; background: var(--ink); opacity: 0; }
+  .map :global(.link b.in) { background: var(--stamp); }
   @media (max-width: 1060px) {
-    .map { aspect-ratio: auto; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0 32px; }
+    .map { aspect-ratio: auto; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); column-gap: var(--gap); }
     .hub, .seat { position: static; transform: none; width: auto; }
     .hub { grid-column: 1 / -1; aspect-ratio: auto; border-radius: 0; border: 0; border-top: 1px solid var(--ink); border-bottom: 1px solid var(--ink); text-align: left; place-content: start; padding: 18px 0; margin-bottom: 8px; }
     .seat { padding: 18px 0; border-bottom: 1px solid var(--rule); }
     .map :global(.link) { display: none; }
   }
   @media (max-width: 600px) { .map { grid-template-columns: minmax(0, 1fr); } }
-
-  .notes { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 32px 64px; margin-top: clamp(56px, 7vw, 96px); }
-  .notes p { color: var(--ink-soft); max-width: 32rem; }
-  .notes b { color: var(--ink); font-weight: 600; }
-  @media (max-width: 860px) { .notes { grid-template-columns: minmax(0, 1fr); } }
 </style>

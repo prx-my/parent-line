@@ -1,7 +1,7 @@
 ---
 const columns = [
   {
-    title: "What the parent agrees to", sub: "They agree at setup. Each service sees one narrow thing.",
+    title: "What it sees", cls: "c-l",
     items: [
       ["Bank SMS only", "Bank watch never reads calls, chats or photos. Ordinary spending goes nowhere."],
       ["Alarms only", "The family sees an alarm, never the parent's everyday transactions."],
@@ -10,7 +10,7 @@ const columns = [
     ],
   },
   {
-    title: "What it can't do", sub: "Said plainly, so nobody relies on it for more.",
+    title: "What it can't do", cls: "c-r",
     items: [
       ["Stop a transfer", "Only the bank can. That is why calling the bank is one of the three jobs."],
       ["See money that never touches the account", "Gift cards, cash or crypto handed over in person raise no bank SMS."],
@@ -21,27 +21,25 @@ const columns = [
 ];
 ---
 <section id="trust">
-  <div class="wrap cols">
-    {columns.map((c) => (
-      <div>
-        <h2 data-reveal>{c.title}</h2>
-        <p class="sub" data-reveal>{c.sub}</p>
-        <ul data-stagger>
-          {c.items.map(([b, s]) => <li><b>{b}</b><span>{s}</span></li>)}
-        </ul>
-      </div>
-    ))}
+  <div class="wrap">
+    <div class="grid head">
+      <h2 class="h2 c-l6">What the parent agrees to</h2>
+      <p class="lead c-r">They agree at setup. Each service sees one narrow thing, and the limits are said plainly so nobody relies on it for more.</p>
+    </div>
+    <div class="grid after-head">
+      {columns.map((c) => (
+        <div class={c.cls}>
+          <h3 class="h3" data-reveal>{c.title}</h3>
+          <ul data-stagger>
+            {c.items.map(([b, s]) => <li><b class="h4">{b}</b><span class="soft">{s}</span></li>)}
+          </ul>
+        </div>
+      ))}
+    </div>
   </div>
 </section>
 
 <style>
-  #trust { border-top: 1px solid var(--rule); }
-  .cols { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 64px 80px; }
-  h2 { font-size: clamp(2.2rem, 4.4vw, 3.8rem); line-height: 0.95; font-stretch: 75%; font-weight: 620; }
-  .sub { margin-top: 16px; color: var(--ink-soft); max-width: 28rem; }
-  ul { list-style: none; padding: 0; margin: 40px 0 0; border-top: 1px solid var(--rule-strong); }
+  ul { list-style: none; padding: 0; margin: 32px 0 0; border-top: 1px solid var(--rule-strong); }
   li { display: grid; gap: 6px; padding-block: 22px; border-bottom: 1px solid var(--rule); }
-  b { font-size: 1.375rem; font-weight: 600; font-stretch: 85%; line-height: 1.15; }
-  li span { color: var(--ink-soft); }
-  @media (max-width: 860px) { .cols { grid-template-columns: minmax(0, 1fr); } }
 </style>

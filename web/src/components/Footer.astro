@@ -4,7 +4,7 @@ import { repo } from "../content";
 <footer>
   <div class="wrap">
     <div class="mark" data-split aria-hidden="true">Parent Line</div>
-    <div class="foot">
+    <div class="foot small soft">
       <span>Runs on <a href="https://github.com/sandbox-quantum/switch">Switch</a>. Built for the Flip the Switch hackathon, November 2026.</span>
       <nav aria-label="Project links">
         <a href={repo}>GitHub</a>
@@ -16,8 +16,8 @@ import { repo } from "../content";
 </footer>
 
 <style>
-  footer { border-top: 1px solid var(--rule); padding-block: clamp(80px, 10vw, 140px) 40px; overflow: hidden; }
+  footer { border-top: 1px solid var(--rule); padding-block: var(--sp-section) 40px; }
   .mark { font-size: clamp(3rem, 26.5vw, 22.5rem); line-height: 0.8; font-stretch: 75%; font-weight: 700; letter-spacing: -0.02em; white-space: nowrap; }
-  .foot { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 16px; margin-top: 40px; padding-top: 22px; border-top: 1px solid var(--rule-strong); color: var(--ink-soft); font-size: 0.9375rem; }
+  .foot { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 16px; margin-top: 40px; padding-top: 22px; border-top: 1px solid var(--rule-strong); }
   nav { display: flex; flex-wrap: wrap; gap: 24px; }
 </style>

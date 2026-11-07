@@ -2,50 +2,73 @@
 ---
 <section id="ways">
   <div class="wrap">
-    <div class="head">
-      <h2>Three more ways an alarm starts</h2>
-      <p>The parent never has to decide they are being scammed. Each alarm starts from something that happened, and lands in the same room.</p>
+    <div class="grid head">
+      <h2 class="h2 c-l6">Three more ways an alarm starts</h2>
+      <p class="lead c-r">The parent never has to decide they are being scammed. Each alarm starts from something that happened, and lands in the same room.</p>
     </div>
 
-    <div class="ways">
-      <article class="way" data-reveal>
-        <div>
-          <h3>A ride alone at night</h3>
-          <p class="desc">Before an Ola, Uber, Rapido or auto ride, anyone in the group writes how long it should take and pastes the app's share-trip message. It runs only when someone starts it.</p>
-          <p class="aside">A code word, <code>@ride-watch pizza</code>, raises the alarm at once, for when she can't talk freely.</p>
+    <div class="ways after-head">
+      <article class="way grid" data-reveal>
+        <div class="c-l">
+          <h3 class="h3">A ride alone at night</h3>
+          <p class="soft measure gap">Before an Ola, Uber, Rapido or auto ride, anyone in the group writes how long it should take and pastes the app's share-trip message. It runs only when someone starts it.</p>
+          <p class="small soft measure gap-s">A code word, <code>@ride-watch pizza</code>, raises the alarm at once, for when she can't talk freely.</p>
         </div>
-        <div class="vis">
+        <div class="c-r vis">
           <ol class="t no-time">
             <li><span class="from">Riya<small>family</small></span><div class="body"><p>@ride-watch 25 min</p></div></li>
           </ol>
+          <div class="route" data-route>
+            <svg viewBox="0 0 600 110" aria-hidden="true">
+              <path class="soft-line" d="M8 80 C 110 80, 130 24, 240 30 S 400 96, 500 70 S 570 30, 592 30" />
+              <path class="ink-line" data-route-path d="M8 80 C 110 80, 130 24, 240 30 S 400 96, 500 70 S 570 30, 592 30" />
+              <circle class="ink-fill" cx="8" cy="80" r="4" />
+              <rect class="ink-line paper-fill" x="584" y="22" width="16" height="16" />
+              <circle class="stamp-fill" data-route-car r="5" cx="8" cy="80" />
+            </svg>
+            <div class="route-ends meta"><span>pickup</span><span>home</span></div>
+          </div>
           <ol class="ticks" aria-label="What happens if Riya doesn't say she reached">
-            <li><span class="bar"><i data-tick></i></span><b>25 min</b>Expected arrival</li>
-            <li><span class="bar"><i data-tick></i></span><b>+10 min</b>Ride watch asks if she reached</li>
-            <li class="a"><span class="bar"><i data-tick></i></span><b>+5 min</b>Alarm, with the driver's details</li>
+            <li><span class="bar"><i data-tick></i></span><b>25 min</b><span class="small soft">Expected arrival</span></li>
+            <li><span class="bar"><i data-tick></i></span><b>+10 min</b><span class="small soft">Ride watch asks if she reached</span></li>
+            <li class="a"><span class="bar"><i data-tick></i></span><b>+5 min</b><span class="small soft">Alarm, with the driver's details</span></li>
           </ol>
         </div>
       </article>
 
-      <article class="way" data-reveal>
-        <div>
-          <h3>A missed call</h3>
-          <p class="desc">Mom saves the family's number as "Family SOS". When a caller scares her, she gives it a missed call. Call watch rejects the call, so it costs her nothing.</p>
-          <p class="aside">One tap on a number she already knows how to dial. No app, no typing.</p>
+      <article class="way grid" data-reveal>
+        <div class="c-l">
+          <h3 class="h3">A missed call</h3>
+          <p class="soft measure gap">Mom saves the family's number as "Family SOS". When a caller scares her, she gives it a missed call. Call watch rejects the call, so it costs her nothing.</p>
+          <p class="small soft measure gap-s">One tap on a number she already knows how to dial. No app, no typing.</p>
         </div>
-        <div class="vis">
+        <div class="c-r vis">
+          <div class="call" data-call>
+            <svg viewBox="-60 -60 120 120" aria-hidden="true">
+              <circle class="ink-line" data-call-ring r="14" />
+              <circle class="ink-line" data-call-ring r="14" />
+              <circle class="ink-line" data-call-ring r="14" />
+              <rect class="ink-fill" x="-10" y="-10" width="20" height="20" />
+              <path class="stamp-line cut" data-call-cut d="M-26 26 L26 -26" />
+            </svg>
+            <div class="call-text">
+              <p class="meta">Mom's phone → Family SOS</p>
+              <p class="h4" data-call-status>Ringing</p>
+            </div>
+          </div>
           <ol class="t no-time">
-            <li><span class="from">Call watch<small>service, no AI</small></span><div class="body"><p>Mom gave a missed call. Who's calling Mom?</p></div></li>
+            <li data-call-post><span class="from">Call watch<small>service, no AI</small></span><div class="body"><p>Mom gave a missed call. Who's calling Mom?</p></div></li>
           </ol>
         </div>
       </article>
 
-      <article class="way" data-reveal>
-        <div>
-          <h3>A question that is really a scam</h3>
-          <p class="desc">Many scams reach a parent as an ordinary "how do I…" question. Line checks every request against a danger list before helping, and answers in the language the parent writes in.</p>
-          <p class="aside">Runs on Switch's WhatsApp and SMS adapters, which are open pull requests. Everything else on this page runs on Switch as released.</p>
+      <article class="way grid" data-reveal>
+        <div class="c-l">
+          <h3 class="h3">A question that is really a scam</h3>
+          <p class="soft measure gap">Many scams reach a parent as an ordinary "how do I…" question. Line checks every request against a danger list before helping, and answers in the language the parent writes in.</p>
+          <p class="small soft measure gap-s">Runs on Switch's WhatsApp and SMS adapters, which are open pull requests. Everything else on this page runs on Switch as released.</p>
         </div>
-        <div class="vis">
+        <div class="c-r vis">
           <ol class="t no-time">
             <li><span class="from">Papa<small>on WhatsApp</small></span><div class="body"><p>bank wale bol rahe AnyDesk download karo</p></div></li>
             <li>
@@ -94,24 +117,27 @@
 </script>
 
 <style>
-  #ways { border-top: 1px solid var(--rule); }
-  .ways { margin-top: clamp(56px, 7vw, 96px); }
-  .way { display: grid; grid-template-columns: minmax(0, 5fr) minmax(0, 7fr); gap: 32px 80px; padding-block: clamp(48px, 6vw, 80px); border-top: 1px solid var(--rule-strong); }
-  .way h3 { font-size: clamp(2rem, 3.6vw, 3rem); line-height: 0.98; font-stretch: 75%; font-weight: 630; }
-  .desc { margin-top: 18px; color: var(--ink-soft); max-width: 28rem; }
-  .aside { margin-top: 16px; font-size: 0.9375rem; color: var(--ink-soft); max-width: 28rem; }
-  .vis { display: grid; gap: 28px; align-content: start; min-width: 0; }
-  @media (max-width: 860px) { .way { grid-template-columns: minmax(0, 1fr); } }
+  .way { padding-block: var(--sp-block); border-top: 1px solid var(--rule-strong); }
+  .way:last-child { padding-bottom: 0; }
+  .gap { margin-top: var(--sp-item); }
+  .gap-s { margin-top: 16px; }
+  .vis { display: grid; gap: 32px; align-content: start; min-width: 0; }
 
-  .ticks { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 4px; }
-  .ticks li { font-size: 0.9375rem; line-height: 1.35; color: var(--ink-soft); padding-right: 12px; }
-  .bar { display: block; height: 2px; background: var(--rule); margin-bottom: 14px; }
+  .route svg { width: 100%; height: auto; }
+  .route-ends { display: flex; justify-content: space-between; margin-top: 6px; }
+  .ticks { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); column-gap: var(--gap); }
+  .ticks li { display: grid; gap: 4px; align-content: start; }
+  .bar { display: block; height: 2px; background: var(--rule); margin-bottom: 12px; }
   .bar i { display: block; height: 100%; background: var(--ink); transform-origin: left; }
   .a .bar i { background: var(--stamp); }
-  .ticks b { display: block; color: var(--ink); font: 500 0.875rem/1.5 var(--mono); }
+  .ticks b { font: 500 0.875rem/1.5 var(--mono); }
   .a b { color: var(--stamp); }
 
+  .call { display: grid; grid-template-columns: 120px minmax(0, 1fr); column-gap: var(--sp-item); align-items: center; }
+  .call svg { width: 120px; height: 120px; }
+  .cut { opacity: 0; }
+
   .langs { display: flex; gap: 18px; margin-bottom: 10px; }
-  .langs button { font: 500 0.875rem/1.4 var(--sans); padding: 0 0 3px; border: 0; border-bottom: 1px solid transparent; background: none; color: var(--ink-soft); cursor: pointer; transition: color 0.3s, border-color 0.3s; }
+  .langs button { font: 500 var(--fs-small)/1.4 var(--sans); padding: 0 0 3px; border: 0; border-bottom: 1px solid transparent; background: none; color: var(--ink-soft); cursor: pointer; transition: color 0.3s, border-color 0.3s; }
   .langs button[aria-selected="true"] { color: var(--ink); border-color: var(--ink); }
 </style>

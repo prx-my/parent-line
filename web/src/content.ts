@@ -19,6 +19,9 @@ const nobody: [JobState, string][] = [["none", "nobody yet"], ["none", "nobody y
 
 export const jobs = ["Call Mom", "Report on 1930", "Call SBI"];
 
+// Labels on the alarm's timeline, one per step below.
+export const alarmMarks = ["0 s", "5 s", "28 s", "3 min", "reply", "+2 s", "later"];
+
 export const alarmSteps: AlarmStep[] = [
   {
     time: "0 s", clock: "0 s", caption: "Bank watch posts the alarm", from: "Bank watch", kind: "service, no AI",
@@ -59,15 +62,16 @@ export const alarmSteps: AlarmStep[] = [
   },
 ];
 
-export type Seat = { x: number; y: number; name: string; kind: string; what: string; call: string };
+// flow: "alarm" seats only post into the room (alarms, drawn red); "talk" seats read and post.
+export type Seat = { x: number; y: number; name: string; kind: string; what: string; call: string; flow: "alarm" | "talk" };
 
 // Positions are percentages of the diagram, on an ellipse around the room.
 export const seats: Seat[] = [
-  { x: 50, y: 9, name: "The family", kind: "people", what: "Take the jobs: call Mom, report, call the bank.", call: "Telegram bridge" },
-  { x: 83, y: 22, name: "Guardian", kind: "AI agent", what: "Hands out the jobs, chases them, closes the alarm.", call: "the room's instructions" },
-  { x: 88, y: 62, name: "Clerk", kind: "AI agent", what: "Case file, complaints, the bank's deadline, public posts.", call: "create_room_document" },
-  { x: 67, y: 91, name: "Line", kind: "AI agent, optional", what: "The parent's help line on WhatsApp or SMS.", call: "connect_to_room" },
-  { x: 33, y: 91, name: "Call watch", kind: "service, no AI", what: "Turns the parent's missed call into an SOS.", call: "Twilio in, agent API out" },
-  { x: 12, y: 62, name: "Ride watch", kind: "service, no AI", what: "A check-in timer for a ride alone at night.", call: "GET /agents/{id}/events" },
-  { x: 17, y: 22, name: "Bank watch", kind: "service, no AI", what: "Reads bank SMS and posts only alarms.", call: "POST /agents/{id}/message" },
+  { x: 50, y: 9, name: "The family", kind: "people", what: "Take the jobs: call Mom, report, call the bank.", call: "Telegram bridge", flow: "talk" },
+  { x: 83, y: 22, name: "Guardian", kind: "AI agent", what: "Hands out the jobs, chases them, closes the alarm.", call: "the room's instructions", flow: "talk" },
+  { x: 88, y: 62, name: "Clerk", kind: "AI agent", what: "Case file, complaints, the bank's deadline, public posts.", call: "create_room_document", flow: "talk" },
+  { x: 67, y: 91, name: "Line", kind: "AI agent, optional", what: "The parent's help line on WhatsApp or SMS.", call: "connect_to_room", flow: "alarm" },
+  { x: 33, y: 91, name: "Call watch", kind: "service, no AI", what: "Turns the parent's missed call into an SOS.", call: "Twilio in, agent API out", flow: "alarm" },
+  { x: 12, y: 62, name: "Ride watch", kind: "service, no AI", what: "A check-in timer for a ride alone at night.", call: "GET /agents/{id}/events", flow: "alarm" },
+  { x: 17, y: 22, name: "Bank watch", kind: "service, no AI", what: "Reads bank SMS and posts only alarms.", call: "POST /agents/{id}/message", flow: "alarm" },
 ];
