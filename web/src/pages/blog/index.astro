@@ -4,18 +4,26 @@ import { posts } from "../../posts";
 ---
 <Site title="Blog" description="Notes from building Parent Line: why it exists, how it works on Switch, and what's next." type="website">
   <section class="blog">
-    <div class="head">
-      <h1 class="h2">Blog</h1>
-      <p class="lead">Notes from building Parent Line.</p>
+    <div class="grid top">
+      <h1 class="h2 c-l">Blog</h1>
+      <div class="c-r intro">
+        <p class="lead">Notes from building Parent Line: why it exists, how it's built on Switch, and what broke on the way.</p>
+        <p class="meta">{posts.length} posts</p>
+      </div>
     </div>
+
     <ol class="list after-head">
       {posts.map((p) => (
         <li>
-          <a href={p.url ?? `/blog/${p.slug}/`}>
-            <p class="meta"><time datetime={p.iso}>{p.published}</time> · {p.minutes} min read</p>
-            <h2 class="h3">{p.title}</h2>
-            <p class="soft measure">{p.description}</p>
-            <span class="more">{p.url ? "Read on DEV" : "Read"} <span aria-hidden="true">{p.url ? "↗" : "→"}</span></span>
+          <a class="grid row" href={p.url ?? `/blog/${p.slug}/`}>
+            <div class="c-l6 lhs">
+              <p class="meta"><time datetime={p.iso}>{p.published}</time> · {p.minutes} min read{p.url && " · on DEV"}</p>
+              <h2 class="h3">{p.title}</h2>
+            </div>
+            <div class="c-r rhs">
+              <p class="soft">{p.description}</p>
+              <span class="textlink">{p.url ? "Read on DEV" : "Read the post"} <span aria-hidden="true">{p.url ? "↗" : "→"}</span></span>
+            </div>
           </a>
         </li>
       ))}
@@ -24,12 +32,20 @@ import { posts } from "../../posts";
 </Site>
 
 <style>
-  .blog { border-top: 0; max-width: 52rem; }
+  .blog { border-top: 0; }
+  .top { align-items: end; }
+  .intro { display: grid; gap: 12px; }
+
   .list { list-style: none; margin-bottom: 0; padding: 0; border-top: 1px solid var(--rule-strong); }
   .list li { border-bottom: 1px solid var(--rule); }
-  .list a { display: grid; gap: 10px; padding-block: 32px; text-decoration: none; }
-  .list h2 { transition: color 0.3s; }
-  .more { font-weight: 500; margin-top: 6px; }
-  .more span { display: inline-block; transition: transform 0.4s var(--ease); }
-  .list a:hover .more span { transform: translateX(4px); }
+  .row { padding-block: var(--sp-head); text-decoration: none; row-gap: 20px; }
+  .lhs { display: grid; gap: 16px; align-content: start; }
+  /* Line the description up with the title, not the date above it */
+  .rhs { display: grid; gap: 24px; align-content: start; justify-items: start; padding-top: calc(var(--fs-meta) * 1.5 + 16px); }
+  .rhs p { max-width: 34rem; }
+  .row:hover .textlink { border-color: var(--ink); }
+  .row:hover .textlink span { transform: translate(2px, -2px); }
+  @media (max-width: 900px) {
+    .rhs { padding-top: 0; }
+  }
 </style>
